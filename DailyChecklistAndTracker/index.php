@@ -36,11 +36,14 @@ and open the template in the editor.
         
         $conn->select_db($dbname);
         
+        ///////////////////////////////////////////////////////////////////////
+        // users
+        ///////////////////////////////////////////////////////////////////////
+
         // sql to create table
         $sql = "CREATE TABLE IF NOT EXISTS users (
             id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, 
-            firstname VARCHAR(30) NOT NULL,
-            lastname VARCHAR(30) NOT NULL
+            username VARCHAR(30) NOT NULL
         )";
 
         if ($conn->query($sql) === TRUE) {
@@ -49,28 +52,118 @@ and open the template in the editor.
             echo "Error creating table: " . $conn->error . "<br>";
         }
 
-        $sql = "SELECT id, firstname, lastname FROM users";
+        $sql = "SELECT id, username FROM users";
         $result = $conn->query($sql);
 
+        $lastUser = -1;
+        
         if ($result->num_rows > 0) {
-            echo "<table><tr><th>ID</th><th>Name</th></tr>";
+            echo "<table><tr><th>ID</th><th>Username</th></tr>";
             // output data of each row
             while($row = $result->fetch_assoc()) {
-                echo "<tr><td>".$row["id"]."</td><td>".$row["firstname"]." ".$row["lastname"]."</td></tr>";
+                echo "<tr><td>".$row["id"]."</td><td>".$row["username"]."</td></tr>";
             }
             echo "</table>";
         } else {
             echo "0 results<br>";
             
-            $sql = "INSERT INTO users (firstname, lastname) VALUES ('John', 'Doe')";
+            $sql = "INSERT INTO users (username) VALUES ('JohnDoe')";
 
             if ($conn->query($sql) === TRUE) {
                 $last_id = $conn->insert_id;
                 echo "New record created successfully. Last inserted ID is: " . $last_id . "<br>";
+                $lastUser = $last_id;
             } else {
                 echo "Error: " . $sql . "<br>" . $conn->error . "<br>";
             }
         }
+        
+        ///////////////////////////////////////////////////////////////////////
+        // tasks
+        ///////////////////////////////////////////////////////////////////////
+
+        // sql to create table
+        $sql = "CREATE TABLE IF NOT EXISTS tasks (
+            id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, 
+            user_id INT(6) UNSIGNED, 
+            task VARCHAR(30) NOT NULL
+        )";
+
+        if ($conn->query($sql) === TRUE) {
+            echo "Table tasks created successfully<br>";
+        } else {
+            echo "Error creating table: " . $conn->error . "<br>";
+        }
+
+        $sql = "SELECT id, user_id, task FROM tasks";
+        $result = $conn->query($sql);
+
+        $lastTask = -1;
+        
+        if ($result->num_rows > 0) {
+            echo "<table><tr><th>ID</th><th>User ID</th><th>Task</th></tr>";
+            // output data of each row
+            while($row = $result->fetch_assoc()) {
+                echo "<tr><td>".$row["id"]."</td><td>".$row["user_id"]."</td><td>".$row["task"]."</td></tr>";
+            }
+            echo "</table>";
+        } else {
+            echo "0 results<br>";
+            
+            $sql = "INSERT INTO tasks (user_id, task) VALUES (".$lastUser.", 'My Task')";
+
+            if ($conn->query($sql) === TRUE) {
+                $last_id = $conn->insert_id;
+                echo "New record created successfully. Last inserted ID is: " . $last_id . "<br>";
+                $lastTask = $last_id;
+            } else {
+                echo "Error: " . $sql . "<br>" . $conn->error . "<br>";
+            }
+        }
+        
+        ///////////////////////////////////////////////////////////////////////
+        // days
+        ///////////////////////////////////////////////////////////////////////
+        
+        // sql to create table
+        $sql = "CREATE TABLE IF NOT EXISTS days (
+            id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, 
+            task_id INT(6) UNSIGNED, 
+            completed BOOL NOT NULL DEFAULT 0
+        )";
+
+        if ($conn->query($sql) === TRUE) {
+            echo "Table days created successfully<br>";
+        } else {
+            echo "Error creating table: " . $conn->error . "<br>";
+        }
+
+        $sql = "SELECT id, task_id, completed FROM days";
+        $result = $conn->query($sql);
+
+        $lastDay = -1;
+        
+        if ($result->num_rows > 0) {
+            echo "<table><tr><th>ID</th><th>Task ID</th><th>Completed</th></tr>";
+            // output data of each row
+            while($row = $result->fetch_assoc()) {
+                echo "<tr><td>".$row["id"]."</td><td>".$row["task_id"]."</td><td>".$row["completed"]."</td></tr>";
+            }
+            echo "</table>";
+        } else {
+            echo "0 results<br>";
+            
+            $sql = "INSERT INTO days (task_id, completed) VALUES (".$lastTask.", true)";
+
+            if ($conn->query($sql) === TRUE) {
+                $last_id = $conn->insert_id;
+                echo "New record created successfully. Last inserted ID is: " . $last_id . "<br>";
+                $lastDay = $last_id;
+            } else {
+                echo "Error: " . $sql . "<br>" . $conn->error . "<br>";
+            }
+        }
+        
         $conn->close();
         ?>
     </body>
