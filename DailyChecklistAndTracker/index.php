@@ -14,7 +14,21 @@ and open the template in the editor.
     <body>
         <form action="" method="post">
             
-            <input type="submit" name="drop_table" value="Delete tables"/>
+            <br>
+            
+            <input type="submit" name="drop_table" value="Delete tables"/><br>
+            
+            <br>
+            
+            <input type="submit" name="input_user" value="Add new user"/><br>
+            
+            <br>
+            
+            <input type="submit" name="input_task" value="Add new task"/><br>
+            
+            <br>
+            
+            <input type="submit" name="input_day" value="Add new day"/><br>
             
             <br>
             
@@ -38,7 +52,7 @@ and open the template in the editor.
             if ($conn->query($sql) === TRUE) {
                 //echo "Database created successfully<br>";
             } else {
-                echo "Error creating database: " . $conn->error . "<br>";
+                echo "Error creating database: $conn->error <br>";
             }
 
             $conn->select_db($dbname);
@@ -76,7 +90,7 @@ and open the template in the editor.
             if ($conn->query($sql) === TRUE) {
                 //echo "Table users created successfully<br>";
             } else {
-                echo "Error creating table: " . $conn->error . "<br>";
+                echo "Error creating table: $conn->error <br>";
             }
 
             $sql = "SELECT id, username, password, display_name, display_image FROM users";
@@ -94,15 +108,40 @@ and open the template in the editor.
                 echo "</table>";
             } else {
                 echo "0 results<br>";
-
-                $sql = "INSERT INTO users (username, password, display_name, display_image) VALUES ('JohnDoe', 'JohnDoe123', 'Johnny', 'JohnDoe.jpg')";
+            }
+            
+            $id = filter_input(INPUT_POST, 'id');
+            $username = filter_input(INPUT_POST, 'username');
+            $password = filter_input(INPUT_POST, 'password');
+            $display_name = filter_input(INPUT_POST, 'display_name');
+            $display_image = filter_input(INPUT_POST, 'display_image');
+            
+            if(isset($_POST['input_user']))
+            {
+                echo '<br>';
+                echo '<table>';
+                echo '<tr> <th>ID</th> <th>Username</th> <th>Password</th> <th>Display name</th> <th>Display image</th> </tr>';
+                echo "<tr> <td>$id</td>".
+                        "<td> <input type='text' name='username' value='$username'> </td>".
+                        "<td> <input type='text' name='password' value='$password'> </td>".
+                        "<td> <input type='text' name='display_name' value='$display_name'> </td>".
+                        "<td> <input type='text' name='display_image' value='$display_image'> </td> </tr>";
+                echo '</table>';
+                echo '<br>';
+                echo '<input type="submit" name="insert_user" value="Submit new user"/><br>';
+                echo '<br>';
+            }
+            
+            if(isset($_POST['insert_user']))
+            {
+                $sql = "INSERT INTO users (username, password, display_name, display_image) VALUES ('$username', '$password', '$display_name', '$display_image')";
 
                 if ($conn->query($sql) === TRUE) {
                     $last_id = $conn->insert_id;
-                    echo "New record created successfully. Last inserted ID is: " . $last_id . "<br>";
+                    echo "New record created successfully. Last inserted ID is: $last_id <br>";
                     $lastUser = $last_id;
                 } else {
-                    echo "Error: " . $sql . "<br>" . $conn->error . "<br>";
+                    echo "Error: $sql <br> $conn->error <br>";
                 }
             }
 
@@ -132,7 +171,7 @@ and open the template in the editor.
             if ($conn->query($sql) === TRUE) {
                 //echo "Table tasks created successfully<br>";
             } else {
-                echo "Error creating table: " . $conn->error . "<br>";
+                echo "Error creating table: $conn->error <br>";
             }
 
             $sql = "SELECT id, user_id, task, next_step, percent_completed, is_private, type, duration, start_date, start_time, finish_date, finish_time, repeat_interval FROM tasks";
@@ -152,16 +191,63 @@ and open the template in the editor.
                 echo "</table>";
             } else {
                 echo "0 results<br>";
+            }
 
+            $id = filter_input(INPUT_POST, 'id');
+            $user_id = filter_input(INPUT_POST, 'user_id');
+            $task = filter_input(INPUT_POST, 'task');
+            $next_step = filter_input(INPUT_POST, 'next_step');
+            $percent_completed = filter_input(INPUT_POST, 'percent_completed');
+            $is_private = filter_input(INPUT_POST, 'is_private');
+            $type = filter_input(INPUT_POST, 'type');
+            $duration = filter_input(INPUT_POST, 'duration');
+            $start_date = filter_input(INPUT_POST, 'start_date');
+            $start_time = filter_input(INPUT_POST, 'start_time');
+            $finish_date = filter_input(INPUT_POST, 'finish_date');
+            $finish_time = filter_input(INPUT_POST, 'finish_time');
+            $repeat_interval = filter_input(INPUT_POST, 'repeat_interval');
+            
+            if(isset($_POST['input_task']))
+            {
+                echo '<br>';
+                echo "<table>";
+                echo "<tr> <th>ID</th> <th>User ID</th> <th>Task</th> <th>Next step</th> <th>Completed %</th> <th>is private</th> <th>Type</th> ".
+                        "<th>Duration</th> <th>Start</th> <th>Time</th> <th>Finish</th> <th>Time</th> <th>Repeat</th> </tr>";
+                echo "<tr> <td>$id</td>".
+                        "<td> <input type='text' name='user_id' value='$user_id'> </td>".
+                        "<td> <input type='text' name='task' value='$task'> </td>".
+                        "<td> <input type='text' name='next_step' value='$next_step'> </td>".
+                        "<td> <input type='text' name='percent_completed' value='$percent_completed'> </td>".
+                        "<td> <input type='checkbox' name='is_private' value='$is_private'> </td>".
+                        //"<td> <input type='text' name='type' value='$type'> </td>".
+                        "<td> <select name='type'>".
+                        "<option value='normal'>Normal</option>".
+                        "<option value='repeat'>Repeat</option>".
+                        "<option value='asap'>ASAP</option>".
+                        "</select> </td>".
+                        "<td> <input type='datetime-local' name='duration' value='$duration'> </td>".
+                        "<td> <input type='date' name='start_date' value='$start_date'> </td>".
+                        "<td> <input type='time' name='start_time' value='$start_time'> </td>".
+                        "<td> <input type='date' name='finish_date' value='$finish_date'> </td>".
+                        "<td> <input type='time' name='finish_time' value='$finish_time'> </td>".
+                        "<td> <input type='datetime-local' name='repeat_interval' value='$repeat_interval'> </td> </tr>";
+                echo "</table>";
+                echo '<br>';
+                echo '<input type="submit" name="insert_task" value="Submit new task"/><br>';
+                echo '<br>';
+            }
+            
+            if(isset($_POST['insert_task']))
+            {    
                 $sql = "INSERT INTO tasks (user_id, task, next_step, percent_completed, is_private, type, duration, start_date, start_time, finish_date, finish_time, repeat_interval) ".
-                        "VALUES (".$lastUser.", 'My Task', 'Next step', 0, 0, 'repeat', '0000-00-00 08:00:00', '2016-11-22', '08:00:00', '2016-12-24', '08:00:00', '0000-00-07 00:00:00')";
+                        "VALUES ('$lastUser', '$task', '$next_step', '$percent_completed', '$is_private', '$type', '$duration', '$start_date', '$start_time', '$finish_date', '$finish_time', '$repeat_interval')";
 
                 if ($conn->query($sql) === TRUE) {
                     $last_id = $conn->insert_id;
-                    echo "New record created successfully. Last inserted ID is: " . $last_id . "<br>";
+                    echo "New record created successfully. Last inserted ID is: $last_id <br>";
                     $lastTask = $last_id;
                 } else {
-                    echo "Error: " . $sql . "<br>" . $conn->error . "<br>";
+                    echo "Error: $sql <br> $conn->error <br>";
                 }
             }
 
@@ -183,7 +269,7 @@ and open the template in the editor.
             if ($conn->query($sql) === TRUE) {
                 //echo "Table days created successfully<br>";
             } else {
-                echo "Error creating table: " . $conn->error . "<br>";
+                echo "Error creating table: $conn->error <br>";
             }
 
             $sql = "SELECT id, task_id, completed, time_spent, step_done FROM days";
@@ -201,15 +287,40 @@ and open the template in the editor.
                 echo "</table>";
             } else {
                 echo "0 results<br>";
+            }
 
-                $sql = "INSERT INTO days (task_id, completed, time_spent, step_done) VALUES (".$lastTask.", true, '00:15:00', 'First step')";
+            $id = filter_input(INPUT_POST, 'id');
+            $task_id = filter_input(INPUT_POST, 'task_id');
+            $completed = filter_input(INPUT_POST, 'completed');
+            $time_spent = filter_input(INPUT_POST, 'time_spent');
+            $step_done = filter_input(INPUT_POST, 'step_done');
+            
+            if(isset($_POST['input_day']))
+            {
+                echo '<br>';
+                echo "<table>";
+                echo "<tr> <th>ID</th> <th>Task ID</th> <th>Completed</th> <th>Time spent</th> <th>Step done</th> </tr>";
+                echo "<tr> <td>$id</td>".
+                        "<td> <input type='text' name='task_id' value='$task_id'> </td>".
+                        "<td> <input type='checkbox' name='completed' value='$completed'> </td>".
+                        "<td> <input type='time' name='time_spent' value='$time_spent'> </td>".
+                        "<td> <input type='text' name='step_done' value='$step_done'> </td> </tr>";
+                echo "</table>";
+                echo '<br>';
+                echo '<input type="submit" name="insert_day" value="Submit new day"/><br>';
+                echo '<br>';
+            }
+            
+            if(isset($_POST['insert_day']))
+            {    
+                $sql = "INSERT INTO days (task_id, completed, time_spent, step_done) VALUES ('$lastTask', '$completed', '$time_spent', '$step_done')";
 
                 if ($conn->query($sql) === TRUE) {
                     $last_id = $conn->insert_id;
-                    echo "New record created successfully. Last inserted ID is: " . $last_id . "<br>";
+                    echo "New record created successfully. Last inserted ID is: $last_id <br>";
                     $lastDay = $last_id;
                 } else {
-                    echo "Error: " . $sql . "<br>" . $conn->error . "<br>";
+                    echo "Error: $sql <br> $conn->error <br>";
                 }
             }
 
