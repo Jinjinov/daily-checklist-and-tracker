@@ -12,7 +12,7 @@ and open the template in the editor.
         <link href="./StyleSheet.css" rel="stylesheet" type="text/css" />
     </head>
     <body>
-        <form action="" method="post">
+        <form action="" method="post" id="theForm">
             
             <br>
             
@@ -33,6 +33,13 @@ and open the template in the editor.
             <br>
             
             <?php
+            
+            function postRedirect()
+            {
+                // Redirect to this page.
+                header("Location: " . $_SERVER['REQUEST_URI']);
+                exit();
+            }
             
             // put your code here
             $servername = "localhost";
@@ -67,9 +74,7 @@ and open the template in the editor.
                 $conn->query('DROP TABLE IF EXISTS tasks');
                 $conn->query('DROP TABLE IF EXISTS days');
                 
-                // Redirect to this page.
-                header("Location: " . $_SERVER['REQUEST_URI']);
-                exit();
+                postRedirect();
             }
 
             echo "<br>";
@@ -93,34 +98,42 @@ and open the template in the editor.
                 echo "Error creating table: $conn->error <br>";
             }
 
-            $sql = "SELECT id, username, password, display_name, display_image FROM users";
-            $result = $conn->query($sql);
-
-            $lastUser = -1;
-
-            if ($result->num_rows > 0) {
-                echo "<table>";
-                echo "<tr> <th>ID</th> <th>Username</th> <th>Password</th> <th>Display name</th> <th>Display image</th> </tr>";
-                // output data of each row
-                while($row = $result->fetch_assoc()) {
-                    echo "<tr> <td>".$row["id"]."</td> <td>".$row["username"]."</td> <td>".$row["password"]."</td> <td>".$row["display_name"]."</td> <td>".$row["display_image"]."</td> </tr>";
-                }
-                echo "</table>";
-            } else {
-                echo "0 results<br>";
-            }
-            
+            $rowIdx = filter_input(INPUT_POST, 'rowIdx');
+                    
             $id = filter_input(INPUT_POST, 'id');
             $username = filter_input(INPUT_POST, 'username');
             $password = filter_input(INPUT_POST, 'password');
             $display_name = filter_input(INPUT_POST, 'display_name');
             $display_image = filter_input(INPUT_POST, 'display_image');
             
+            $sql = "SELECT id, username, password, display_name, display_image FROM users";
+            $result = $conn->query($sql);
+
+            echo "<table>";
+            
+            if ($result->num_rows > 0) {
+                //echo "<table>";
+                echo "<tr> <th>ID</th> <th>Username</th> <th>Password</th> <th>Display name</th> <th>Display image</th> </tr>";
+                // output data of each row
+                $count = 0;
+                while($row = $result->fetch_assoc()) {
+                    ++$count;
+                    $style = "";
+                    if($rowIdx==$count){
+                        $style = "style='background:red;'";
+                    }
+                    echo "<tr onclick='RowClick(this);' $style> <td>".$row["id"]."</td> <td>".$row["username"]."</td> <td>".$row["password"]."</td> <td>".$row["display_name"]."</td> <td>".$row["display_image"]."</td> </tr>";
+                }
+                //echo "</table>";
+            } else {
+                echo "0 results<br>";
+            }
+            
             if(isset($_POST['input_user']))
             {
-                echo '<br>';
-                echo '<table>';
-                echo '<tr> <th>ID</th> <th>Username</th> <th>Password</th> <th>Display name</th> <th>Display image</th> </tr>';
+                //echo '<br>';
+                //echo '<table>';
+                //echo '<tr> <th>ID</th> <th>Username</th> <th>Password</th> <th>Display name</th> <th>Display image</th> </tr>';
                 echo "<tr> <td>$id</td>".
                         "<td> <input type='text' name='username' value='$username'> </td>".
                         "<td> <input type='text' name='password' value='$password'> </td>".
@@ -131,6 +144,12 @@ and open the template in the editor.
                 echo '<input type="submit" name="insert_user" value="Submit new user"/><br>';
                 echo '<br>';
             }
+            else
+            {
+                echo '</table>';
+            }
+            
+            $lastUser = -1;
             
             if(isset($_POST['insert_user']))
             {
@@ -140,6 +159,8 @@ and open the template in the editor.
                     $last_id = $conn->insert_id;
                     echo "New record created successfully. Last inserted ID is: $last_id <br>";
                     $lastUser = $last_id;
+                    
+                    postRedirect();
                 } else {
                     echo "Error: $sql <br> $conn->error <br>";
                 }
@@ -174,25 +195,6 @@ and open the template in the editor.
                 echo "Error creating table: $conn->error <br>";
             }
 
-            $sql = "SELECT id, user_id, task, next_step, percent_completed, is_private, type, duration, start_date, start_time, finish_date, finish_time, repeat_interval FROM tasks";
-            $result = $conn->query($sql);
-
-            $lastTask = -1;
-
-            if ($result->num_rows > 0) {
-                echo "<table>";
-                echo "<tr> <th>ID</th> <th>User ID</th> <th>Task</th> <th>Next step</th> <th>Completed %</th> <th>is private</th> <th>Type</th> ".
-                        "<th>Duration</th> <th>Start</th> <th>Time</th> <th>Finish</th> <th>Time</th> <th>Repeat</th> </tr>";
-                // output data of each row
-                while($row = $result->fetch_assoc()) {
-                    echo "<tr> <td>".$row["id"]."</td> <td>".$row["user_id"]."</td> <td>".$row["task"]."</td> <td>".$row["next_step"]."</td> <td>".$row["percent_completed"]."</td> <td>".$row["is_private"]."</td> <td>".$row["type"]."</td> ".
-                            "<td>".$row["duration"]."</td> <td>".$row["start_date"]."</td> <td>".$row["start_time"]."</td> <td>".$row["finish_date"]."</td> <td>".$row["finish_time"]."</td> <td>".$row["repeat_interval"]."</td> </tr>";
-                }
-                echo "</table>";
-            } else {
-                echo "0 results<br>";
-            }
-
             $id = filter_input(INPUT_POST, 'id');
             $user_id = filter_input(INPUT_POST, 'user_id');
             $task = filter_input(INPUT_POST, 'task');
@@ -207,12 +209,31 @@ and open the template in the editor.
             $finish_time = filter_input(INPUT_POST, 'finish_time');
             $repeat_interval = filter_input(INPUT_POST, 'repeat_interval');
             
-            if(isset($_POST['input_task']))
-            {
-                echo '<br>';
-                echo "<table>";
+            $sql = "SELECT id, user_id, task, next_step, percent_completed, is_private, type, duration, start_date, start_time, finish_date, finish_time, repeat_interval FROM tasks";
+            $result = $conn->query($sql);
+
+            echo "<table>";
+            
+            if ($result->num_rows > 0) {
+                //echo "<table>";
                 echo "<tr> <th>ID</th> <th>User ID</th> <th>Task</th> <th>Next step</th> <th>Completed %</th> <th>is private</th> <th>Type</th> ".
                         "<th>Duration</th> <th>Start</th> <th>Time</th> <th>Finish</th> <th>Time</th> <th>Repeat</th> </tr>";
+                // output data of each row
+                while($row = $result->fetch_assoc()) {
+                    echo "<tr> <td>".$row["id"]."</td> <td>".$row["user_id"]."</td> <td>".$row["task"]."</td> <td>".$row["next_step"]."</td> <td>".$row["percent_completed"]."</td> <td>".$row["is_private"]."</td> <td>".$row["type"]."</td> ".
+                            "<td>".$row["duration"]."</td> <td>".$row["start_date"]."</td> <td>".$row["start_time"]."</td> <td>".$row["finish_date"]."</td> <td>".$row["finish_time"]."</td> <td>".$row["repeat_interval"]."</td> </tr>";
+                }
+                //echo "</table>";
+            } else {
+                echo "0 results<br>";
+            }
+
+            if(isset($_POST['input_task']))
+            {
+                //echo '<br>';
+                //echo "<table>";
+                //echo "<tr> <th>ID</th> <th>User ID</th> <th>Task</th> <th>Next step</th> <th>Completed %</th> <th>is private</th> <th>Type</th> ".
+                //        "<th>Duration</th> <th>Start</th> <th>Time</th> <th>Finish</th> <th>Time</th> <th>Repeat</th> </tr>";
                 echo "<tr> <td>$id</td>".
                         "<td> <input type='text' name='user_id' value='$user_id'> </td>".
                         "<td> <input type='text' name='task' value='$task'> </td>".
@@ -236,6 +257,12 @@ and open the template in the editor.
                 echo '<input type="submit" name="insert_task" value="Submit new task"/><br>';
                 echo '<br>';
             }
+            else
+            {
+                echo '</table>';
+            }
+            
+            $lastTask = -1;
             
             if(isset($_POST['insert_task']))
             {    
@@ -246,6 +273,8 @@ and open the template in the editor.
                     $last_id = $conn->insert_id;
                     echo "New record created successfully. Last inserted ID is: $last_id <br>";
                     $lastTask = $last_id;
+                    
+                    postRedirect();
                 } else {
                     echo "Error: $sql <br> $conn->error <br>";
                 }
@@ -272,34 +301,34 @@ and open the template in the editor.
                 echo "Error creating table: $conn->error <br>";
             }
 
-            $sql = "SELECT id, task_id, completed, time_spent, step_done FROM days";
-            $result = $conn->query($sql);
-
-            $lastDay = -1;
-
-            if ($result->num_rows > 0) {
-                echo "<table>";
-                echo "<tr> <th>ID</th> <th>Task ID</th> <th>Completed</th> <th>Time spent</th> <th>Step done</th> </tr>";
-                // output data of each row
-                while($row = $result->fetch_assoc()) {
-                    echo "<tr> <td>".$row["id"]."</td> <td>".$row["task_id"]."</td> <td>".$row["completed"]."</td> <td>".$row["time_spent"]."</td> <td>".$row["step_done"]."</td> </tr>";
-                }
-                echo "</table>";
-            } else {
-                echo "0 results<br>";
-            }
-
             $id = filter_input(INPUT_POST, 'id');
             $task_id = filter_input(INPUT_POST, 'task_id');
             $completed = filter_input(INPUT_POST, 'completed');
             $time_spent = filter_input(INPUT_POST, 'time_spent');
             $step_done = filter_input(INPUT_POST, 'step_done');
             
+            $sql = "SELECT id, task_id, completed, time_spent, step_done FROM days";
+            $result = $conn->query($sql);
+
+            echo "<table>";
+            
+            if ($result->num_rows > 0) {
+                //echo "<table>";
+                echo "<tr> <th>ID</th> <th>Task ID</th> <th>Completed</th> <th>Time spent</th> <th>Step done</th> </tr>";
+                // output data of each row
+                while($row = $result->fetch_assoc()) {
+                    echo "<tr> <td>".$row["id"]."</td> <td>".$row["task_id"]."</td> <td>".$row["completed"]."</td> <td>".$row["time_spent"]."</td> <td>".$row["step_done"]."</td> </tr>";
+                }
+                //echo "</table>";
+            } else {
+                echo "0 results<br>";
+            }
+
             if(isset($_POST['input_day']))
             {
-                echo '<br>';
-                echo "<table>";
-                echo "<tr> <th>ID</th> <th>Task ID</th> <th>Completed</th> <th>Time spent</th> <th>Step done</th> </tr>";
+                //echo '<br>';
+                //echo "<table>";
+                //echo "<tr> <th>ID</th> <th>Task ID</th> <th>Completed</th> <th>Time spent</th> <th>Step done</th> </tr>";
                 echo "<tr> <td>$id</td>".
                         "<td> <input type='text' name='task_id' value='$task_id'> </td>".
                         "<td> <input type='checkbox' name='completed' value='$completed'> </td>".
@@ -310,6 +339,12 @@ and open the template in the editor.
                 echo '<input type="submit" name="insert_day" value="Submit new day"/><br>';
                 echo '<br>';
             }
+            else
+            {
+                echo '</table>';
+            }
+            
+            $lastDay = -1;
             
             if(isset($_POST['insert_day']))
             {    
@@ -319,6 +354,8 @@ and open the template in the editor.
                     $last_id = $conn->insert_id;
                     echo "New record created successfully. Last inserted ID is: $last_id <br>";
                     $lastDay = $last_id;
+                    
+                    postRedirect();
                 } else {
                     echo "Error: $sql <br> $conn->error <br>";
                 }
@@ -330,7 +367,17 @@ and open the template in the editor.
             
             $conn->close();
             ?>
+            
+            <input id="rowIdx" type='hidden' name='rowIdx' value='<?php echo $rowIdx; ?>'>
         </form>
-        
+            
+        <script>
+        function RowClick(x)
+        {
+            document.getElementById('rowIdx').value = x.rowIndex;
+            
+            document.getElementById("theForm").submit();
+        }
+        </script>
     </body>
 </html>
