@@ -20,18 +20,6 @@ and open the template in the editor.
             
             <br>
             
-            <input type="submit" name="input_user" value="Add new user"/><br>
-            
-            <br>
-            
-            <input type="submit" name="input_task" value="Add new task"/><br>
-            
-            <br>
-            
-            <input type="submit" name="input_day" value="Add new day"/><br>
-            
-            <br>
-            
             <?php
             
             function postRedirect()
@@ -77,8 +65,6 @@ and open the template in the editor.
                 postRedirect();
             }
 
-            echo "<br>";
-            
             ///////////////////////////////////////////////////////////////////////
             // users
             ///////////////////////////////////////////////////////////////////////
@@ -98,8 +84,10 @@ and open the template in the editor.
                 echo "Error creating table: $conn->error <br>";
             }
 
-            $rowIdx = filter_input(INPUT_POST, 'rowIdx');
-                    
+            $userRowIdx = filter_input(INPUT_POST, 'userRowIdx');
+            $taskRowIdx = filter_input(INPUT_POST, 'taskRowIdx');
+            $dayRowIdx = filter_input(INPUT_POST, 'dayRowIdx');
+
             $id = filter_input(INPUT_POST, 'id');
             $username = filter_input(INPUT_POST, 'username');
             $password = filter_input(INPUT_POST, 'password');
@@ -109,6 +97,15 @@ and open the template in the editor.
             $sql = "SELECT id, username, password, display_name, display_image FROM users";
             $result = $conn->query($sql);
 
+            echo '<input type="submit" name="input_user" value="Add new user"/><br>';
+            echo '<br>';
+            
+            if($userRowIdx != null)
+            {
+                echo '<input type="submit" name="delete_user" value="Delete selected user"/><br>';
+                echo '<br>';
+            }
+                    
             echo "<table>";
             
             if ($result->num_rows > 0) {
@@ -119,10 +116,10 @@ and open the template in the editor.
                 while($row = $result->fetch_assoc()) {
                     ++$count;
                     $style = "";
-                    if($rowIdx==$count){
+                    if($userRowIdx==$count){
                         $style = "style='background:red;'";
                     }
-                    echo "<tr onclick='RowClick(this);' $style> <td>".$row["id"]."</td> <td>".$row["username"]."</td> <td>".$row["password"]."</td> <td>".$row["display_name"]."</td> <td>".$row["display_image"]."</td> </tr>";
+                    echo "<tr onclick='RowClick(\"userRowIdx\", this);' $style> <td>".$row["id"]."</td> <td>".$row["username"]."</td> <td>".$row["password"]."</td> <td>".$row["display_name"]."</td> <td>".$row["display_image"]."</td> </tr>";
                 }
                 //echo "</table>";
             } else {
@@ -163,6 +160,20 @@ and open the template in the editor.
                     postRedirect();
                 } else {
                     echo "Error: $sql <br> $conn->error <br>";
+                }
+            }
+            
+            if(isset($_POST['delete_user']))
+            {
+                // sql to delete a record
+                $sql = "DELETE FROM users WHERE id=$userRowIdx";
+
+                if ($conn->query($sql) === TRUE) {
+                    echo "Record deleted successfully";
+                    
+                    postRedirect();
+                } else {
+                    echo "Error deleting record: " . $conn->error;
                 }
             }
 
@@ -212,6 +223,15 @@ and open the template in the editor.
             $sql = "SELECT id, user_id, task, next_step, percent_completed, is_private, type, duration, start_date, start_time, finish_date, finish_time, repeat_interval FROM tasks";
             $result = $conn->query($sql);
 
+            echo '<input type="submit" name="input_task" value="Add new task"/><br>';
+            echo '<br>';
+            
+            if($taskRowIdx != null)
+            {
+                echo '<input type="submit" name="delete_task" value="Delete selected task"/><br>';
+                echo '<br>';
+            }
+                    
             echo "<table>";
             
             if ($result->num_rows > 0) {
@@ -219,8 +239,14 @@ and open the template in the editor.
                 echo "<tr> <th>ID</th> <th>User ID</th> <th>Task</th> <th>Next step</th> <th>Completed %</th> <th>is private</th> <th>Type</th> ".
                         "<th>Duration</th> <th>Start</th> <th>Time</th> <th>Finish</th> <th>Time</th> <th>Repeat</th> </tr>";
                 // output data of each row
+                $count = 0;
                 while($row = $result->fetch_assoc()) {
-                    echo "<tr> <td>".$row["id"]."</td> <td>".$row["user_id"]."</td> <td>".$row["task"]."</td> <td>".$row["next_step"]."</td> <td>".$row["percent_completed"]."</td> <td>".$row["is_private"]."</td> <td>".$row["type"]."</td> ".
+                    ++$count;
+                    $style = "";
+                    if($taskRowIdx==$count){
+                        $style = "style='background:red;'";
+                    }
+                    echo "<tr onclick='RowClick(\"taskRowIdx\", this);' $style> <td>".$row["id"]."</td> <td>".$row["user_id"]."</td> <td>".$row["task"]."</td> <td>".$row["next_step"]."</td> <td>".$row["percent_completed"]."</td> <td>".$row["is_private"]."</td> <td>".$row["type"]."</td> ".
                             "<td>".$row["duration"]."</td> <td>".$row["start_date"]."</td> <td>".$row["start_time"]."</td> <td>".$row["finish_date"]."</td> <td>".$row["finish_time"]."</td> <td>".$row["repeat_interval"]."</td> </tr>";
                 }
                 //echo "</table>";
@@ -279,6 +305,20 @@ and open the template in the editor.
                     echo "Error: $sql <br> $conn->error <br>";
                 }
             }
+            
+            if(isset($_POST['delete_task']))
+            {
+                // sql to delete a record
+                $sql = "DELETE FROM tasks WHERE id=$taskRowIdx";
+
+                if ($conn->query($sql) === TRUE) {
+                    echo "Record deleted successfully";
+                    
+                    postRedirect();
+                } else {
+                    echo "Error deleting record: " . $conn->error;
+                }
+            }
 
             echo "<br>";
             
@@ -310,14 +350,29 @@ and open the template in the editor.
             $sql = "SELECT id, task_id, completed, time_spent, step_done FROM days";
             $result = $conn->query($sql);
 
+            echo '<input type="submit" name="input_day" value="Add new day"/><br>';
+            echo '<br>';
+            
+            if($dayRowIdx != null)
+            {
+                echo '<input type="submit" name="delete_day" value="Delete selected day"/><br>';
+                echo '<br>';
+            }
+                    
             echo "<table>";
             
             if ($result->num_rows > 0) {
                 //echo "<table>";
                 echo "<tr> <th>ID</th> <th>Task ID</th> <th>Completed</th> <th>Time spent</th> <th>Step done</th> </tr>";
                 // output data of each row
+                $count = 0;
                 while($row = $result->fetch_assoc()) {
-                    echo "<tr> <td>".$row["id"]."</td> <td>".$row["task_id"]."</td> <td>".$row["completed"]."</td> <td>".$row["time_spent"]."</td> <td>".$row["step_done"]."</td> </tr>";
+                    ++$count;
+                    $style = "";
+                    if($dayRowIdx==$count){
+                        $style = "style='background:red;'";
+                    }
+                    echo "<tr onclick='RowClick(\"dayRowIdx\", this);' $style> <td>".$row["id"]."</td> <td>".$row["task_id"]."</td> <td>".$row["completed"]."</td> <td>".$row["time_spent"]."</td> <td>".$row["step_done"]."</td> </tr>";
                 }
                 //echo "</table>";
             } else {
@@ -361,6 +416,20 @@ and open the template in the editor.
                 }
             }
 
+            if(isset($_POST['delete_day']))
+            {
+                // sql to delete a record
+                $sql = "DELETE FROM days WHERE id=$dayRowIdx";
+
+                if ($conn->query($sql) === TRUE) {
+                    echo "Record deleted successfully";
+                    
+                    postRedirect();
+                } else {
+                    echo "Error deleting record: " . $conn->error;
+                }
+            }
+            
             ///////////////////////////////////////////////////////////////////////
             //
             ///////////////////////////////////////////////////////////////////////
@@ -368,13 +437,19 @@ and open the template in the editor.
             $conn->close();
             ?>
             
-            <input id="rowIdx" type='hidden' name='rowIdx' value='<?php echo $rowIdx; ?>'>
+            <input id="userRowIdx" type='hidden' name='userRowIdx' value='<?php echo $userRowIdx; ?>'>
+            <input id="taskRowIdx" type='hidden' name='taskRowIdx' value='<?php echo $taskRowIdx; ?>'>
+            <input id="dayRowIdx" type='hidden' name='dayRowIdx' value='<?php echo $dayRowIdx; ?>'>
         </form>
             
         <script>
-        function RowClick(x)
+        function RowClick(id, row)
         {
-            document.getElementById('rowIdx').value = x.rowIndex;
+            if(document.getElementById(id).value == row.rowIndex) {
+                document.getElementById(id).value = '';
+            } else {
+                document.getElementById(id).value = row.rowIndex;
+            }
             
             document.getElementById("theForm").submit();
         }
