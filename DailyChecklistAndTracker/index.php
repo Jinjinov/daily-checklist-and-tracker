@@ -25,7 +25,7 @@ and open the template in the editor.
             function postRedirect()
             {
                 // Redirect to this page.
-                header("Location: " . $_SERVER['REQUEST_URI']);
+                header("Location: " . filter_input(INPUT_SERVER, 'REQUEST_URI'));
                 exit();
             }
             
@@ -56,7 +56,7 @@ and open the template in the editor.
             // drop table
             ///////////////////////////////////////////////////////////////////////
             
-            if(isset($_POST['drop_table']))
+            if(filter_has_var(INPUT_POST, 'drop_table'))
             {
                 $conn->query('DROP TABLE IF EXISTS users');
                 $conn->query('DROP TABLE IF EXISTS tasks');
@@ -104,51 +104,72 @@ and open the template in the editor.
             {
                 echo '<input type="submit" name="delete_user" value="Delete selected user"/><br>';
                 echo '<br>';
+                echo '<input type="submit" name="update_user" value="Update selected user"/><br>';
+                echo '<br>';
             }
                     
             echo "<table>";
             
             if ($result->num_rows > 0) {
-                //echo "<table>";
                 echo "<tr> <th>ID</th> <th>Username</th> <th>Password</th> <th>Display name</th> <th>Display image</th> </tr>";
                 // output data of each row
                 $count = 0;
                 while($row = $result->fetch_assoc()) {
+                    $id = $row["id"];
+                    $username = $row["username"];
+                    $password = $row["password"];
+                    $display_name = $row["display_name"];
+                    $display_image = $row["display_image"];
+            
                     ++$count;
                     $style = "";
                     if($userRowIdx==$count){
                         $style = "style='background:red;'";
                     }
-                    echo "<tr onclick='RowClick(\"userRowIdx\", this);' $style> <td>".$row["id"]."</td> <td>".$row["username"]."</td> <td>".$row["password"]."</td> <td>".$row["display_name"]."</td> <td>".$row["display_image"]."</td> </tr>";
+                    if($userRowIdx==$count && filter_has_var(INPUT_POST, 'update_user')){
+                        echo "<tr> <td>$id</td>".
+                        "<td> <input type='text' name='username' value='$username'> </td>".
+                        "<td> <input type='text' name='password' value='$password'> </td>".
+                        "<td> <input type='text' name='display_name' value='$display_name'> </td>".
+                        "<td> <input type='text' name='display_image' value='$display_image'> </td> </tr>";
+                    } else {
+                        echo "<tr onclick='RowClick(\"userRowIdx\", this);' $style> <td>$id</td>".
+                        "<td> $username </td>".
+                        "<td> $password </td>".
+                        "<td> $display_name </td>".
+                        "<td> $display_image </td> </tr>";
+                    }
                 }
-                //echo "</table>";
             } else {
                 echo "0 results<br>";
             }
             
-            if(isset($_POST['input_user']))
+            if(filter_has_var(INPUT_POST, 'input_user'))
             {
-                //echo '<br>';
-                //echo '<table>';
-                //echo '<tr> <th>ID</th> <th>Username</th> <th>Password</th> <th>Display name</th> <th>Display image</th> </tr>';
                 echo "<tr> <td>$id</td>".
                         "<td> <input type='text' name='username' value='$username'> </td>".
                         "<td> <input type='text' name='password' value='$password'> </td>".
                         "<td> <input type='text' name='display_name' value='$display_name'> </td>".
                         "<td> <input type='text' name='display_image' value='$display_image'> </td> </tr>";
-                echo '</table>';
+            }
+            
+            echo '</table>';
+            
+            if(filter_has_var(INPUT_POST, 'input_user')){
                 echo '<br>';
-                echo '<input type="submit" name="insert_user" value="Submit new user"/><br>';
+                echo '<input type="submit" name="insert_user" value="Submit user"/><br>';
                 echo '<br>';
             }
-            else
-            {
-                echo '</table>';
+            
+            if(filter_has_var(INPUT_POST, 'update_user')){
+                echo '<br>';
+                echo '<input type="submit" name="save_user" value="Save changes"/><br>';
+                echo '<br>';
             }
             
             $lastUser = -1;
             
-            if(isset($_POST['insert_user']))
+            if(filter_has_var(INPUT_POST, 'insert_user'))
             {
                 $sql = "INSERT INTO users (username, password, display_name, display_image) VALUES ('$username', '$password', '$display_name', '$display_image')";
 
@@ -163,7 +184,18 @@ and open the template in the editor.
                 }
             }
             
-            if(isset($_POST['delete_user']))
+            if(filter_has_var(INPUT_POST, 'save_user'))
+            {
+                $sql = "UPDATE users SET username='$username', password='$password', display_name='$display_name', display_image='$display_image' WHERE id=$userRowIdx";
+
+                if ($conn->query($sql) === TRUE) {
+                    echo "Record updated successfully";
+                } else {
+                    echo "Error updating record: " . $conn->error;
+                }
+            }
+            
+            if(filter_has_var(INPUT_POST, 'delete_user'))
             {
                 // sql to delete a record
                 $sql = "DELETE FROM users WHERE id=$userRowIdx";
@@ -230,36 +262,78 @@ and open the template in the editor.
             {
                 echo '<input type="submit" name="delete_task" value="Delete selected task"/><br>';
                 echo '<br>';
+                echo '<input type="submit" name="update_task" value="Update selected task"/><br>';
+                echo '<br>';
             }
                     
             echo "<table>";
             
             if ($result->num_rows > 0) {
-                //echo "<table>";
                 echo "<tr> <th>ID</th> <th>User ID</th> <th>Task</th> <th>Next step</th> <th>Completed %</th> <th>is private</th> <th>Type</th> ".
                         "<th>Duration</th> <th>Start</th> <th>Time</th> <th>Finish</th> <th>Time</th> <th>Repeat</th> </tr>";
                 // output data of each row
                 $count = 0;
                 while($row = $result->fetch_assoc()) {
+                    $id = $row["id"];
+                    $user_id = $row["user_id"];
+                    $task = $row["task"];
+                    $next_step = $row["next_step"];
+                    $percent_completed = $row["percent_completed"];
+                    $is_private = $row["is_private"];
+                    $type = $row["type"];
+                    $duration = $row["duration"];
+                    $start_date = $row["start_date"];
+                    $start_time = $row["start_time"];
+                    $finish_date = $row["finish_date"];
+                    $finish_time = $row["finish_time"];
+                    $repeat_interval = $row["repeat_interval"];
+            
                     ++$count;
                     $style = "";
                     if($taskRowIdx==$count){
                         $style = "style='background:red;'";
                     }
-                    echo "<tr onclick='RowClick(\"taskRowIdx\", this);' $style> <td>".$row["id"]."</td> <td>".$row["user_id"]."</td> <td>".$row["task"]."</td> <td>".$row["next_step"]."</td> <td>".$row["percent_completed"]."</td> <td>".$row["is_private"]."</td> <td>".$row["type"]."</td> ".
-                            "<td>".$row["duration"]."</td> <td>".$row["start_date"]."</td> <td>".$row["start_time"]."</td> <td>".$row["finish_date"]."</td> <td>".$row["finish_time"]."</td> <td>".$row["repeat_interval"]."</td> </tr>";
+                    if($taskRowIdx==$count && filter_has_var(INPUT_POST, 'update_task')){
+                        echo "<tr> <td>$id</td>".
+                        "<td> <input type='text' name='user_id' value='$user_id'> </td>".
+                        "<td> <input type='text' name='task' value='$task'> </td>".
+                        "<td> <input type='text' name='next_step' value='$next_step'> </td>".
+                        "<td> <input type='text' name='percent_completed' value='$percent_completed'> </td>".
+                        "<td> <input type='checkbox' name='is_private' value='$is_private'> </td>".
+                        //"<td> <input type='text' name='type' value='$type'> </td>".
+                        "<td> <select name='type'>".
+                        "<option value='normal'>Normal</option>".
+                        "<option value='repeat'>Repeat</option>".
+                        "<option value='asap'>ASAP</option>".
+                        "</select> </td>".
+                        "<td> <input type='datetime-local' name='duration' value='$duration'> </td>".
+                        "<td> <input type='date' name='start_date' value='$start_date'> </td>".
+                        "<td> <input type='time' name='start_time' value='$start_time'> </td>".
+                        "<td> <input type='date' name='finish_date' value='$finish_date'> </td>".
+                        "<td> <input type='time' name='finish_time' value='$finish_time'> </td>".
+                        "<td> <input type='datetime-local' name='repeat_interval' value='$repeat_interval'> </td> </tr>";
+                    } else {
+                        echo "<tr onclick='RowClick(\"taskRowIdx\", this);' $style> <td>$id</td>".
+                        "<td> $user_id </td>".
+                        "<td> $task </td>".
+                        "<td> $next_step </td>".
+                        "<td> $percent_completed </td>".
+                        "<td> $is_private </td>".
+                        "<td> $type </td>".
+                        "<td> $duration </td>".
+                        "<td> $start_date </td>".
+                        "<td> $start_time </td>".
+                        "<td> $finish_date </td>".
+                        "<td> $finish_time </td>".
+                        "<td> $repeat_interval </td> </tr>";
+                    }
                 }
-                //echo "</table>";
             } else {
                 echo "0 results<br>";
             }
 
-            if(isset($_POST['input_task']))
+            if(filter_has_var(INPUT_POST, 'input_task'))
             {
-                //echo '<br>';
-                //echo "<table>";
-                //echo "<tr> <th>ID</th> <th>User ID</th> <th>Task</th> <th>Next step</th> <th>Completed %</th> <th>is private</th> <th>Type</th> ".
-                //        "<th>Duration</th> <th>Start</th> <th>Time</th> <th>Finish</th> <th>Time</th> <th>Repeat</th> </tr>";
                 echo "<tr> <td>$id</td>".
                         "<td> <input type='text' name='user_id' value='$user_id'> </td>".
                         "<td> <input type='text' name='task' value='$task'> </td>".
@@ -278,19 +352,27 @@ and open the template in the editor.
                         "<td> <input type='date' name='finish_date' value='$finish_date'> </td>".
                         "<td> <input type='time' name='finish_time' value='$finish_time'> </td>".
                         "<td> <input type='datetime-local' name='repeat_interval' value='$repeat_interval'> </td> </tr>";
-                echo "</table>";
+            }
+            
+            echo "</table>";
+            
+            if(filter_has_var(INPUT_POST, 'input_task'))
+            {
                 echo '<br>';
                 echo '<input type="submit" name="insert_task" value="Submit new task"/><br>';
                 echo '<br>';
             }
-            else
+            
+            if(filter_has_var(INPUT_POST, 'update_task'))
             {
-                echo '</table>';
+                echo '<br>';
+                echo '<input type="submit" name="save_task" value="Save changes"/><br>';
+                echo '<br>';
             }
             
             $lastTask = -1;
             
-            if(isset($_POST['insert_task']))
+            if(filter_has_var(INPUT_POST, 'insert_task'))
             {    
                 $sql = "INSERT INTO tasks (user_id, task, next_step, percent_completed, is_private, type, duration, start_date, start_time, finish_date, finish_time, repeat_interval) ".
                         "VALUES ('$lastUser', '$task', '$next_step', '$percent_completed', '$is_private', '$type', '$duration', '$start_date', '$start_time', '$finish_date', '$finish_time', '$repeat_interval')";
@@ -306,7 +388,21 @@ and open the template in the editor.
                 }
             }
             
-            if(isset($_POST['delete_task']))
+            if(filter_has_var(INPUT_POST, 'save_task'))
+            {
+                $sql = "UPDATE tasks SET user_id='$user_id', task='$task', next_step='$next_step', percent_completed='$percent_completed', ".
+                        "is_private='$is_private', type='$type', duration='$duration', start_date='$start_date', ".
+                        "start_time='$start_time', finish_date='$finish_date', finish_time='$finish_time', repeat_interval='$repeat_interval' ".
+                        "WHERE id=$taskRowIdx";
+
+                if ($conn->query($sql) === TRUE) {
+                    echo "Record updated successfully";
+                } else {
+                    echo "Error updating record: " . $conn->error;
+                }
+            }
+            
+            if(filter_has_var(INPUT_POST, 'delete_task'))
             {
                 // sql to delete a record
                 $sql = "DELETE FROM tasks WHERE id=$taskRowIdx";
@@ -357,51 +453,75 @@ and open the template in the editor.
             {
                 echo '<input type="submit" name="delete_day" value="Delete selected day"/><br>';
                 echo '<br>';
+                echo '<input type="submit" name="update_day" value="Update selected day"/><br>';
+                echo '<br>';
             }
                     
             echo "<table>";
             
             if ($result->num_rows > 0) {
-                //echo "<table>";
                 echo "<tr> <th>ID</th> <th>Task ID</th> <th>Completed</th> <th>Time spent</th> <th>Step done</th> </tr>";
                 // output data of each row
                 $count = 0;
                 while($row = $result->fetch_assoc()) {
+                    $id = $row["id"];
+                    $task_id = $row["task_id"];
+                    $completed = $row["completed"];
+                    $time_spent = $row["time_spent"];
+                    $step_done = $row["step_done"];
+            
                     ++$count;
                     $style = "";
                     if($dayRowIdx==$count){
                         $style = "style='background:red;'";
                     }
-                    echo "<tr onclick='RowClick(\"dayRowIdx\", this);' $style> <td>".$row["id"]."</td> <td>".$row["task_id"]."</td> <td>".$row["completed"]."</td> <td>".$row["time_spent"]."</td> <td>".$row["step_done"]."</td> </tr>";
+                    if($dayRowIdx==$count && filter_has_var(INPUT_POST, 'update_day')){
+                        echo "<tr> <td>$id</td>".
+                            "<td> <input type='text' name='task_id' value='$task_id'> </td>".
+                            "<td> <input type='checkbox' name='completed' value='$completed'> </td>".
+                            "<td> <input type='time' name='time_spent' value='$time_spent'> </td>".
+                            "<td> <input type='text' name='step_done' value='$step_done'> </td> </tr>";
+                    } else {
+                        echo "<tr onclick='RowClick(\"dayRowIdx\", this);' $style> <td>$id</td>".
+                            "<td> $task_id </td>".
+                            "<td> $completed </td>".
+                            "<td> $time_spent </td>".
+                            "<td> $step_done </td> </tr>";
+                    }
+                    
                 }
-                //echo "</table>";
             } else {
                 echo "0 results<br>";
             }
 
-            if(isset($_POST['input_day']))
+            if(filter_has_var(INPUT_POST, 'input_day'))
             {
-                //echo '<br>';
-                //echo "<table>";
-                //echo "<tr> <th>ID</th> <th>Task ID</th> <th>Completed</th> <th>Time spent</th> <th>Step done</th> </tr>";
                 echo "<tr> <td>$id</td>".
                         "<td> <input type='text' name='task_id' value='$task_id'> </td>".
                         "<td> <input type='checkbox' name='completed' value='$completed'> </td>".
                         "<td> <input type='time' name='time_spent' value='$time_spent'> </td>".
                         "<td> <input type='text' name='step_done' value='$step_done'> </td> </tr>";
-                echo "</table>";
+            }
+            
+            echo "</table>";
+            
+            if(filter_has_var(INPUT_POST, 'input_day'))
+            {
                 echo '<br>';
-                echo '<input type="submit" name="insert_day" value="Submit new day"/><br>';
+                echo '<input type="submit" name="insert_day" value="Submit day"/><br>';
                 echo '<br>';
             }
-            else
+            
+            if(filter_has_var(INPUT_POST, 'update_day'))
             {
-                echo '</table>';
+                echo '<br>';
+                echo '<input type="submit" name="save_day" value="Save changes"/><br>';
+                echo '<br>';
             }
             
             $lastDay = -1;
             
-            if(isset($_POST['insert_day']))
+            if(filter_has_var(INPUT_POST, 'insert_day'))
             {    
                 $sql = "INSERT INTO days (task_id, completed, time_spent, step_done) VALUES ('$lastTask', '$completed', '$time_spent', '$step_done')";
 
@@ -415,8 +535,19 @@ and open the template in the editor.
                     echo "Error: $sql <br> $conn->error <br>";
                 }
             }
+            
+            if(filter_has_var(INPUT_POST, 'save_day'))
+            {
+                $sql = "UPDATE days SET task_id='$task_id', completed='$completed', time_spent='$time_spent', step_done='$step_done' WHERE id=$dayRowIdx";
 
-            if(isset($_POST['delete_day']))
+                if ($conn->query($sql) === TRUE) {
+                    echo "Record updated successfully";
+                } else {
+                    echo "Error updating record: " . $conn->error;
+                }
+            }
+
+            if(filter_has_var(INPUT_POST, 'delete_day'))
             {
                 // sql to delete a record
                 $sql = "DELETE FROM days WHERE id=$dayRowIdx";
@@ -445,7 +576,7 @@ and open the template in the editor.
         <script>
         function RowClick(id, row)
         {
-            if(document.getElementById(id).value == row.rowIndex) {
+            if(Number(document.getElementById(id).value) === row.rowIndex) {
                 document.getElementById(id).value = '';
             } else {
                 document.getElementById(id).value = row.rowIndex;
