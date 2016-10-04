@@ -6,6 +6,7 @@ function create_days_table($conn)
     $sql = "CREATE TABLE IF NOT EXISTS days (
         id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, 
         task_id INT UNSIGNED, 
+        user_id INT UNSIGNED, 
         completed BOOL NOT NULL DEFAULT 0,
         time_spent TIME,
         step_done VARCHAR(256)
@@ -18,23 +19,25 @@ function create_days_table($conn)
     }
 }
 
-function days($conn,$lastTask)
+function days($conn,$selectedUserId,$selectedTaskId,&$selectedDayId)
 {
     $id = filter_input(INPUT_POST, 'id');
     $task_id = filter_input(INPUT_POST, 'task_id');
-    $completed = filter_input(INPUT_POST, 'completed');
+    $completed = filter_has_var(INPUT_POST, 'completed');
     $time_spent = filter_input(INPUT_POST, 'time_spent');
     $step_done = filter_input(INPUT_POST, 'step_done');
 
-    $sql = "SELECT id, task_id, completed, time_spent, step_done FROM days";
+    $sql = "SELECT id, task_id, completed, time_spent, step_done FROM days WHERE user_id = $selectedUserId";
     $result = $conn->query($sql);
+    // TODO: if ($conn->query($sql) === TRUE)
 
-    echo '<input type="submit" name="input_day" value="Add new day"/><br>';
-    echo '<br>';
-
-    $dayRowIdx = filter_input(INPUT_POST, 'dayRowIdx');
+    if($selectedTaskId > 0)
+    {
+        echo '<input type="submit" name="input_day" value="Add new day"/><br>';
+        echo '<br>';
+    }
     
-    if($dayRowIdx != null)
+    if($selectedDayId != null)
     {
         echo '<input type="submit" name="delete_day" value="Delete selected day"/><br>';
         echo '<br>';
@@ -43,35 +46,35 @@ function days($conn,$lastTask)
     }
 
     echo "<table>";
+    echo "<tr> <th>ID</th> <th>Task ID</th> <th>Completed</th> <th>Time spent</th> <th>Step done</th> </tr>";
 
     if ($result->num_rows > 0) {
-        echo "<tr> <th>ID</th> <th>Task ID</th> <th>Completed</th> <th>Time spent</th> <th>Step done</th> </tr>";
+        
         // output data of each row
-        $count = 0;
-        while($row = $result->fetch_assoc()) {
-            $id = $row["id"];
-            $task_id = $row["task_id"];
-            $completed = $row["completed"];
-            $time_spent = $row["time_spent"];
-            $step_done = $row["step_done"];
 
-            ++$count;
+        while($row = $result->fetch_assoc()) {
+            $row_id = $row["id"];
+            $row_task_id = $row["task_id"];
+            $row_completed = $row["completed"];
+            $row_time_spent = $row["time_spent"];
+            $row_step_done = $row["step_done"];
+
             $style = "";
-            if($dayRowIdx==$count){
+            if($selectedDayId==$row_id){
                 $style = "style='background:red;'";
             }
-            if($dayRowIdx==$count && filter_has_var(INPUT_POST, 'update_day')){
-                echo "<tr> <td>$id</td>".
-                    "<td> <input type='text' name='task_id' value='$task_id'> </td>".
-                    "<td> <input type='checkbox' name='completed' value='$completed'> </td>".
-                    "<td> <input type='time' name='time_spent' value='$time_spent'> </td>".
-                    "<td> <input type='text' name='step_done' value='$step_done'> </td> </tr>";
+            if($selectedDayId==$row_id && filter_has_var(INPUT_POST, 'update_day')){
+                echo "<tr> <td>$row_id</td>".
+                    "<td> <input type='text' name='task_id' value='$row_task_id'> </td>".
+                    "<td> <input type='checkbox' name='completed' value='$row_completed'> </td>".
+                    "<td> <input type='time' name='time_spent' value='$row_time_spent'> </td>".
+                    "<td> <input type='text' name='step_done' value='$row_step_done'> </td> </tr>";
             } else {
-                echo "<tr onclick='RowClick(\"dayRowIdx\", this);' $style> <td>$id</td>".
-                    "<td> $task_id </td>".
-                    "<td> $completed </td>".
-                    "<td> $time_spent </td>".
-                    "<td> $step_done </td> </tr>";
+                echo "<tr onclick='RowClick(\"selectedDayId\", this);' $style> <td>$row_id</td>".
+                    "<td> $row_task_id </td>".
+                    "<td> $row_completed </td>".
+                    "<td> $row_time_spent </td>".
+                    "<td> $row_step_done </td> </tr>";
             }
 
         }
@@ -108,12 +111,11 @@ function days($conn,$lastTask)
 
     if(filter_has_var(INPUT_POST, 'insert_day'))
     {    
-        $sql = "INSERT INTO days (task_id, completed, time_spent, step_done) VALUES ('$lastTask', '$completed', '$time_spent', '$step_done')";
+        $sql = "INSERT INTO days (task_id, user_id, completed, time_spent, step_done) VALUES ('$selectedTaskId', '$selectedUserId', '$completed', '$time_spent', '$step_done')";
 
         if ($conn->query($sql) === TRUE) {
-            $last_id = $conn->insert_id;
-            echo "New record created successfully. Last inserted ID is: $last_id <br>";
-            $lastDay = $last_id;
+            $lastDay = $conn->insert_id;
+            echo "New record created successfully. Last inserted ID is: $lastDay <br>";
 
             postRedirect();
         } else {
@@ -123,7 +125,7 @@ function days($conn,$lastTask)
 
     if(filter_has_var(INPUT_POST, 'save_day'))
     {
-        $sql = "UPDATE days SET task_id='$task_id', completed='$completed', time_spent='$time_spent', step_done='$step_done' WHERE id=$dayRowIdx";
+        $sql = "UPDATE days SET task_id='$task_id', completed='$completed', time_spent='$time_spent', step_done='$step_done' WHERE id=$selectedDayId";
 
         if ($conn->query($sql) === TRUE) {
             echo "Record updated successfully";
@@ -135,7 +137,7 @@ function days($conn,$lastTask)
     if(filter_has_var(INPUT_POST, 'delete_day'))
     {
         // sql to delete a record
-        $sql = "DELETE FROM days WHERE id=$dayRowIdx";
+        $sql = "DELETE FROM days WHERE id=$selectedDayId";
 
         if ($conn->query($sql) === TRUE) {
             echo "Record deleted successfully";
@@ -145,8 +147,6 @@ function days($conn,$lastTask)
             echo "Error deleting record: " . $conn->error;
         }
     }
-    
-    echo "<input id='dayRowIdx' type='hidden' name='dayRowIdx' value='$dayRowIdx'>";
     
     return $lastDay;
 }

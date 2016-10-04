@@ -18,10 +18,8 @@ function create_users_table($conn)
     }
 }
 
-function users($conn)
+function users($conn,&$selectedUserId)
 {
-    $userRowIdx = filter_input(INPUT_POST, 'userRowIdx');
-
     $id = filter_input(INPUT_POST, 'id');
     $username = filter_input(INPUT_POST, 'username');
     $password = filter_input(INPUT_POST, 'password');
@@ -30,11 +28,12 @@ function users($conn)
 
     $sql = "SELECT id, username, password, display_name, display_image FROM users";
     $result = $conn->query($sql);
+    // TODO: if ($conn->query($sql) === TRUE)
 
     echo '<input type="submit" name="input_user" value="Add new user"/><br>';
     echo '<br>';
 
-    if($userRowIdx != null)
+    if($selectedUserId != null)
     {
         echo '<input type="submit" name="delete_user" value="Delete selected user"/><br>';
         echo '<br>';
@@ -43,35 +42,35 @@ function users($conn)
     }
 
     echo "<table>";
+    echo "<tr> <th>ID</th> <th>Username</th> <th>Password</th> <th>Display name</th> <th>Display image</th> </tr>";
 
     if ($result->num_rows > 0) {
-        echo "<tr> <th>ID</th> <th>Username</th> <th>Password</th> <th>Display name</th> <th>Display image</th> </tr>";
+        
         // output data of each row
-        $count = 0;
-        while($row = $result->fetch_assoc()) {
-            $id = $row["id"];
-            $username = $row["username"];
-            $password = $row["password"];
-            $display_name = $row["display_name"];
-            $display_image = $row["display_image"];
 
-            ++$count;
+        while($row = $result->fetch_assoc()) {
+            $row_id = $row["id"];
+            $row_username = $row["username"];
+            $row_password = $row["password"];
+            $row_display_name = $row["display_name"];
+            $row_display_image = $row["display_image"];
+
             $style = "";
-            if($userRowIdx==$count){
+            if($selectedUserId==$row_id){
                 $style = "style='background:red;'";
             }
-            if($userRowIdx==$count && filter_has_var(INPUT_POST, 'update_user')){
-                echo "<tr> <td>$id</td>".
-                "<td> <input type='text' name='username' value='$username'> </td>".
-                "<td> <input type='text' name='password' value='$password'> </td>".
-                "<td> <input type='text' name='display_name' value='$display_name'> </td>".
-                "<td> <input type='text' name='display_image' value='$display_image'> </td> </tr>";
+            if($selectedUserId==$row_id && filter_has_var(INPUT_POST, 'update_user')){
+                echo "<tr> <td>$row_id</td>".
+                "<td> <input type='text' name='username' value='$row_username'> </td>".
+                "<td> <input type='text' name='password' value='$row_password'> </td>".
+                "<td> <input type='text' name='display_name' value='$row_display_name'> </td>".
+                "<td> <input type='text' name='display_image' value='$row_display_image'> </td> </tr>";
             } else {
-                echo "<tr onclick='RowClick(\"userRowIdx\", this);' $style> <td>$id</td>".
-                "<td> $username </td>".
-                "<td> $password </td>".
-                "<td> $display_name </td>".
-                "<td> $display_image </td> </tr>";
+                echo "<tr onclick='RowClick(\"selectedUserId\", this);' $style> <td>$row_id</td>".
+                "<td> $row_username </td>".
+                "<td> $row_password </td>".
+                "<td> $row_display_name </td>".
+                "<td> $row_display_image </td> </tr>";
             }
         }
     } else {
@@ -108,9 +107,8 @@ function users($conn)
         $sql = "INSERT INTO users (username, password, display_name, display_image) VALUES ('$username', '$password', '$display_name', '$display_image')";
 
         if ($conn->query($sql) === TRUE) {
-            $last_id = $conn->insert_id;
-            echo "New record created successfully. Last inserted ID is: $last_id <br>";
-            $lastUser = $last_id;
+            $lastUser = $conn->insert_id;
+            echo "New record created successfully. Last inserted ID is: $lastUser <br>";
 
             postRedirect();
         } else {
@@ -120,7 +118,7 @@ function users($conn)
 
     if(filter_has_var(INPUT_POST, 'save_user'))
     {
-        $sql = "UPDATE users SET username='$username', password='$password', display_name='$display_name', display_image='$display_image' WHERE id=$userRowIdx";
+        $sql = "UPDATE users SET username='$username', password='$password', display_name='$display_name', display_image='$display_image' WHERE id=$selectedUserId";
 
         if ($conn->query($sql) === TRUE) {
             echo "Record updated successfully";
@@ -132,7 +130,7 @@ function users($conn)
     if(filter_has_var(INPUT_POST, 'delete_user'))
     {
         // sql to delete a record
-        $sql = "DELETE FROM users WHERE id=$userRowIdx";
+        $sql = "DELETE FROM users WHERE id=$selectedUserId";
 
         if ($conn->query($sql) === TRUE) {
             echo "Record deleted successfully";
@@ -142,8 +140,6 @@ function users($conn)
             echo "Error deleting record: " . $conn->error;
         }
     }
-    
-    echo "<input id='userRowIdx' type='hidden' name='userRowIdx' value='$userRowIdx'>";
     
     return $lastUser;
 }
