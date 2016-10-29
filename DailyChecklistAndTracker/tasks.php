@@ -43,9 +43,9 @@ class Task
     var $repeat_interval;
 }
 
-function tasks($conn,$selectedUserId,&$selectedTaskId)
+function get_task()
 {
-    $task = new Task;
+    $task = new Task();
     
     $task->id = filter_input(INPUT_POST, 'id');
     $task->user_id = filter_input(INPUT_POST, 'user_id');
@@ -60,30 +60,45 @@ function tasks($conn,$selectedUserId,&$selectedTaskId)
     $task->finish_date = filter_input(INPUT_POST, 'finish_date');
     $task->finish_time = filter_input(INPUT_POST, 'finish_time');
     $task->repeat_interval = filter_input(INPUT_POST, 'repeat_interval');
+    
+    return $task;
+}
 
-    $sql = "SELECT id, user_id, task, next_step, percent_completed, is_private, type, duration, start_date, start_time, finish_date, finish_time, repeat_interval FROM tasks WHERE user_id = $selectedUserId";
-    $result = $conn->query($sql);
-    // TODO: if ($conn->query($sql) === TRUE)
-
+function tasks_buttons($selectedTaskId)
+{
     echo '<input type="submit" name="input_task" value="Add new task"/><br>';
     echo '<br>';
     
-    if($selectedTaskId != null)
-    {
+    if($selectedTaskId != null){
         echo '<input type="submit" name="sql_delete_task" value="Delete selected task"/><br>';
         echo '<br>';
         echo '<input type="submit" name="update_task" value="Update selected task"/><br>';
         echo '<br>';
     }
+    
+    if(filter_has_var(INPUT_POST, 'input_task')){
+        echo '<input type="submit" name="sql_insert_task" value="Submit new task"/><br>';
+        echo '<br>';
+    }
+
+    if(filter_has_var(INPUT_POST, 'update_task')){
+        echo '<input type="submit" name="sql_update_task" value="Save changes"/><br>';
+        echo '<br>';
+    }
+}
+
+function tasks_table($conn,$selectedUserId,&$selectedTaskId,Task $task)
+{
+    $sql = "SELECT id, user_id, task, next_step, percent_completed, is_private, type, duration, start_date, start_time, finish_date, finish_time, repeat_interval FROM tasks WHERE user_id = $selectedUserId";
+    $result = $conn->query($sql);
+    // TODO: if ($conn->query($sql) === TRUE)
 
     echo "<table>";
     echo "<tr> <th>ID</th> <th>User ID</th> <th>Task</th> <th>Next step</th> <th>Completed %</th> <th>is private</th> <th>Type</th> ".
                 "<th>Duration</th> <th>Start</th> <th>Time</th> <th>Finish</th> <th>Time</th> <th>Repeat</th> </tr>";
 
     if ($result->num_rows > 0) {
-        
-        // output data of each row
-        $rowTask = new Task;
+        $rowTask = new Task();
 
         while($row = $result->fetch_assoc()) {
             $rowTask->id = $row["id"];
@@ -139,10 +154,8 @@ function tasks($conn,$selectedUserId,&$selectedTaskId)
                 "<td> $rowTask->repeat_interval </td> </tr>";
             }
         }
-    } else {
-        echo "0 results<br>";
     }
-
+    
     if(filter_has_var(INPUT_POST, 'input_task'))
     {
         echo "<tr> <td>$task->id</td>".
@@ -166,21 +179,10 @@ function tasks($conn,$selectedUserId,&$selectedTaskId)
     }
 
     echo "</table>";
+}
 
-    if(filter_has_var(INPUT_POST, 'input_task'))
-    {
-        echo '<br>';
-        echo '<input type="submit" name="sql_insert_task" value="Submit new task"/><br>';
-        echo '<br>';
-    }
-
-    if(filter_has_var(INPUT_POST, 'update_task'))
-    {
-        echo '<br>';
-        echo '<input type="submit" name="sql_update_task" value="Save changes"/><br>';
-        echo '<br>';
-    }
-
+function insert_task($conn,$selectedUserId,Task $task)
+{
     $lastTask = -1;
 
     if(filter_has_var(INPUT_POST, 'sql_insert_task'))
@@ -197,7 +199,12 @@ function tasks($conn,$selectedUserId,&$selectedTaskId)
             echo "Error: $sql <br> $conn->error <br>";
         }
     }
+    
+    return $lastTask;
+}
 
+function update_task($conn,&$selectedTaskId,Task $task)
+{
     if(filter_has_var(INPUT_POST, 'sql_update_task'))
     {
         $sql = "UPDATE tasks SET user_id='$task->user_id', task='$task->task', next_step='$task->next_step', percent_completed='$task->percent_completed', ".
@@ -207,11 +214,16 @@ function tasks($conn,$selectedUserId,&$selectedTaskId)
 
         if ($conn->query($sql) === TRUE) {
             echo "Record updated successfully";
+            
+            postRedirect(2);
         } else {
             echo "Error updating record: " . $conn->error;
         }
     }
+}
 
+function delete_task($conn,&$selectedTaskId)
+{
     if(filter_has_var(INPUT_POST, 'sql_delete_task'))
     {
         // sql to delete a record
@@ -220,11 +232,9 @@ function tasks($conn,$selectedUserId,&$selectedTaskId)
         if ($conn->query($sql) === TRUE) {
             echo "Record deleted successfully";
 
-            postRedirect(2);
+            postRedirect(3);
         } else {
             echo "Error deleting record: " . $conn->error;
         }
     }
-    
-    return $lastTask;
 }

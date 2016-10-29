@@ -28,7 +28,7 @@ class Day
     var $step_done;
 }
 
-function days($conn,$selectedUserId,$selectedTaskId,&$selectedDayId)
+function get_day()
 {
     $day = new Day();
     
@@ -37,31 +37,45 @@ function days($conn,$selectedUserId,$selectedTaskId,&$selectedDayId)
     $day->completed = filter_has_var(INPUT_POST, 'completed');
     $day->time_spent = filter_input(INPUT_POST, 'time_spent');
     $day->step_done = filter_input(INPUT_POST, 'step_done');
+    
+    return $day;
+}
 
-    $sql = "SELECT id, task_id, completed, time_spent, step_done FROM days WHERE user_id = $selectedUserId";
-    $result = $conn->query($sql);
-    // TODO: if ($conn->query($sql) === TRUE)
-
-    if($selectedTaskId > 0)
-    {
+function days_buttons($selectedTaskId,$selectedDayId)
+{
+    if($selectedTaskId > 0){
         echo '<input type="submit" name="input_day" value="Add new day"/><br>';
         echo '<br>';
     }
     
-    if($selectedDayId != null)
-    {
+    if($selectedDayId != null){
         echo '<input type="submit" name="sql_delete_day" value="Delete selected day"/><br>';
         echo '<br>';
         echo '<input type="submit" name="update_day" value="Update selected day"/><br>';
         echo '<br>';
     }
+    
+    if(filter_has_var(INPUT_POST, 'input_day')){
+        echo '<input type="submit" name="sql_insert_day" value="Submit day"/><br>';
+        echo '<br>';
+    }
+
+    if(filter_has_var(INPUT_POST, 'update_day')){
+        echo '<input type="submit" name="sql_update_day" value="Save changes"/><br>';
+        echo '<br>';
+    }
+}
+
+function days_table($conn,$selectedUserId,&$selectedDayId,Day $day)
+{
+    $sql = "SELECT id, task_id, completed, time_spent, step_done FROM days WHERE user_id = $selectedUserId";
+    $result = $conn->query($sql);
+    // TODO: if ($conn->query($sql) === TRUE)
 
     echo "<table>";
     echo "<tr> <th>ID</th> <th>Task ID</th> <th>Completed</th> <th>Time spent</th> <th>Step done</th> </tr>";
 
     if ($result->num_rows > 0) {
-        
-        // output data of each row
         $rowDay = new Day();
 
         while($row = $result->fetch_assoc()) {
@@ -88,10 +102,7 @@ function days($conn,$selectedUserId,$selectedTaskId,&$selectedDayId)
                     "<td> $rowDay->time_spent </td>".
                     "<td> $rowDay->step_done </td> </tr>";
             }
-
         }
-    } else {
-        echo "0 results<br>";
     }
 
     if(filter_has_var(INPUT_POST, 'input_day'))
@@ -104,21 +115,10 @@ function days($conn,$selectedUserId,$selectedTaskId,&$selectedDayId)
     }
 
     echo "</table>";
+}
 
-    if(filter_has_var(INPUT_POST, 'input_day'))
-    {
-        echo '<br>';
-        echo '<input type="submit" name="sql_insert_day" value="Submit day"/><br>';
-        echo '<br>';
-    }
-
-    if(filter_has_var(INPUT_POST, 'update_day'))
-    {
-        echo '<br>';
-        echo '<input type="submit" name="sql_update_day" value="Save changes"/><br>';
-        echo '<br>';
-    }
-
+function insert_day($conn,$selectedUserId,$selectedTaskId,Day $day)
+{
     $lastDay = -1;
 
     if(filter_has_var(INPUT_POST, 'sql_insert_day'))
@@ -134,18 +134,28 @@ function days($conn,$selectedUserId,$selectedTaskId,&$selectedDayId)
             echo "Error: $sql <br> $conn->error <br>";
         }
     }
+    
+    return $lastDay;
+}
 
+function update_day($conn,&$selectedDayId,Day $day)
+{
     if(filter_has_var(INPUT_POST, 'sql_update_day'))
     {
         $sql = "UPDATE days SET task_id='$day->task_id', completed='$day->completed', time_spent='$day->time_spent', step_done='$day->step_done' WHERE id=$selectedDayId";
 
         if ($conn->query($sql) === TRUE) {
             echo "Record updated successfully";
+            
+            postRedirect(2);
         } else {
             echo "Error updating record: " . $conn->error;
         }
     }
+}
 
+function delete_day($conn,&$selectedDayId)
+{
     if(filter_has_var(INPUT_POST, 'sql_delete_day'))
     {
         // sql to delete a record
@@ -154,11 +164,9 @@ function days($conn,$selectedUserId,$selectedTaskId,&$selectedDayId)
         if ($conn->query($sql) === TRUE) {
             echo "Record deleted successfully";
 
-            postRedirect(2);
+            postRedirect(3);
         } else {
             echo "Error deleting record: " . $conn->error;
         }
     }
-    
-    return $lastDay;
 }

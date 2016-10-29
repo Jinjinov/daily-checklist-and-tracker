@@ -123,7 +123,7 @@ and open the template in the editor.
                 $conn->query('DROP TABLE IF EXISTS tasks');
                 $conn->query('DROP TABLE IF EXISTS days');
                 
-                postRedirect(3);
+                postRedirect(4);
             }
 
             ///////////////////////////////////////////////////////////////////////
@@ -139,7 +139,12 @@ and open the template in the editor.
                 include 'users.php';
 
                 create_users_table($conn);
-                users($conn,$selectedUserId);
+                $user = get_user();
+                users_buttons($selectedUserId);
+                users_table($conn,$selectedUserId,$user);
+                insert_user($conn,$user);
+                update_user($conn,$selectedUserId,$user);
+                delete_user($conn,$selectedUserId);
 
                 echo "<br>";
             }
@@ -152,7 +157,12 @@ and open the template in the editor.
                 include 'tasks.php';
 
                 create_tasks_table($conn);
-                tasks($conn,$selectedUserId,$selectedTaskId);
+                $task = get_task();
+                tasks_buttons($selectedTaskId);
+                tasks_table($conn,$selectedUserId,$selectedTaskId,$task);
+                insert_task($conn,$selectedUserId,$task);
+                update_task($conn,$selectedTaskId,$task);
+                delete_task($conn,$selectedTaskId);
 
                 echo "<br>";
 
@@ -163,7 +173,12 @@ and open the template in the editor.
                 include 'days.php';
 
                 create_days_table($conn);
-                days($conn,$selectedUserId,$selectedTaskId,$selectedDayId);
+                $day = get_day();
+                days_buttons($selectedTaskId,$selectedDayId);
+                days_table($conn,$selectedUserId,$selectedDayId,$day);
+                insert_day($conn,$selectedUserId,$selectedTaskId,$day);
+                update_day($conn,$selectedDayId,$day);
+                delete_day($conn,$selectedDayId);
             }
             
             ///////////////////////////////////////////////////////////////////////
