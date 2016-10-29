@@ -26,21 +26,40 @@ function create_tasks_table($conn)
     }
 }
 
+class Task
+{
+    var $id;
+    var $user_id;
+    var $task;
+    var $next_step;
+    var $percent_completed;
+    var $is_private;
+    var $type;
+    var $duration;
+    var $start_date;
+    var $start_time;
+    var $finish_date;
+    var $finish_time;
+    var $repeat_interval;
+}
+
 function tasks($conn,$selectedUserId,&$selectedTaskId)
 {
-    $id = filter_input(INPUT_POST, 'id');
-    $user_id = filter_input(INPUT_POST, 'user_id');
-    $task = filter_input(INPUT_POST, 'task');
-    $next_step = filter_input(INPUT_POST, 'next_step');
-    $percent_completed = filter_input(INPUT_POST, 'percent_completed');
-    $is_private = filter_has_var(INPUT_POST, 'is_private');
-    $type = filter_input(INPUT_POST, 'type');
-    $duration = filter_input(INPUT_POST, 'duration');
-    $start_date = filter_input(INPUT_POST, 'start_date');
-    $start_time = filter_input(INPUT_POST, 'start_time');
-    $finish_date = filter_input(INPUT_POST, 'finish_date');
-    $finish_time = filter_input(INPUT_POST, 'finish_time');
-    $repeat_interval = filter_input(INPUT_POST, 'repeat_interval');
+    $task = new Task;
+    
+    $task->id = filter_input(INPUT_POST, 'id');
+    $task->user_id = filter_input(INPUT_POST, 'user_id');
+    $task->task = filter_input(INPUT_POST, 'task');
+    $task->next_step = filter_input(INPUT_POST, 'next_step');
+    $task->percent_completed = filter_input(INPUT_POST, 'percent_completed');
+    $task->is_private = filter_has_var(INPUT_POST, 'is_private');
+    $task->type = filter_input(INPUT_POST, 'type');
+    $task->duration = filter_input(INPUT_POST, 'duration');
+    $task->start_date = filter_input(INPUT_POST, 'start_date');
+    $task->start_time = filter_input(INPUT_POST, 'start_time');
+    $task->finish_date = filter_input(INPUT_POST, 'finish_date');
+    $task->finish_time = filter_input(INPUT_POST, 'finish_time');
+    $task->repeat_interval = filter_input(INPUT_POST, 'repeat_interval');
 
     $sql = "SELECT id, user_id, task, next_step, percent_completed, is_private, type, duration, start_date, start_time, finish_date, finish_time, repeat_interval FROM tasks WHERE user_id = $selectedUserId";
     $result = $conn->query($sql);
@@ -51,7 +70,7 @@ function tasks($conn,$selectedUserId,&$selectedTaskId)
     
     if($selectedTaskId != null)
     {
-        echo '<input type="submit" name="delete_task" value="Delete selected task"/><br>';
+        echo '<input type="submit" name="sql_delete_task" value="Delete selected task"/><br>';
         echo '<br>';
         echo '<input type="submit" name="update_task" value="Update selected task"/><br>';
         echo '<br>';
@@ -64,59 +83,60 @@ function tasks($conn,$selectedUserId,&$selectedTaskId)
     if ($result->num_rows > 0) {
         
         // output data of each row
+        $rowTask = new Task;
 
         while($row = $result->fetch_assoc()) {
-            $row_id = $row["id"];
-            $row_user_id = $row["user_id"];
-            $row_task = $row["task"];
-            $row_next_step = $row["next_step"];
-            $row_percent_completed = $row["percent_completed"];
-            $row_is_private = $row["is_private"];
-            $row_type = $row["type"];
-            $row_duration = $row["duration"];
-            $row_start_date = $row["start_date"];
-            $row_start_time = $row["start_time"];
-            $row_finish_date = $row["finish_date"];
-            $row_finish_time = $row["finish_time"];
-            $row_repeat_interval = $row["repeat_interval"];
+            $rowTask->id = $row["id"];
+            $rowTask->user_id = $row["user_id"];
+            $rowTask->task = $row["task"];
+            $rowTask->next_step = $row["next_step"];
+            $rowTask->percent_completed = $row["percent_completed"];
+            $rowTask->is_private = $row["is_private"];
+            $rowTask->type = $row["type"];
+            $rowTask->duration = $row["duration"];
+            $rowTask->start_date = $row["start_date"];
+            $rowTask->start_time = $row["start_time"];
+            $rowTask->finish_date = $row["finish_date"];
+            $rowTask->finish_time = $row["finish_time"];
+            $rowTask->repeat_interval = $row["repeat_interval"];
 
             $style = "";
-            if($selectedTaskId==$row_id){
+            if($selectedTaskId==$rowTask->id){
                 $style = "style='background:red;'";
             }
-            if($selectedTaskId==$row_id && filter_has_var(INPUT_POST, 'update_task')){
-                echo "<tr> <td>$row_id</td>".
-                "<td> <input type='text' name='user_id' value='$row_user_id'> </td>".
-                "<td> <input type='text' name='task' value='$row_task'> </td>".
-                "<td> <input type='text' name='next_step' value='$row_next_step'> </td>".
-                "<td> <input type='text' name='percent_completed' value='$row_percent_completed'> </td>".
-                "<td> <input type='checkbox' name='is_private' value='$row_is_private'> </td>".
+            if($selectedTaskId==$rowTask->id && filter_has_var(INPUT_POST, 'update_task')){
+                echo "<tr> <td>$rowTask->id</td>".
+                "<td> <input type='text' name='user_id' value='$rowTask->user_id'> </td>".
+                "<td> <input type='text' name='task' value='$rowTask->task'> </td>".
+                "<td> <input type='text' name='next_step' value='$rowTask->next_step'> </td>".
+                "<td> <input type='text' name='percent_completed' value='$rowTask->percent_completed'> </td>".
+                "<td> <input type='checkbox' name='is_private' value='$rowTask->is_private'> </td>".
                 //"<td> <input type='text' name='type' value='$type'> </td>".
                 "<td> <select name='type'>".
                 "<option value='normal'>Normal</option>".
                 "<option value='repeat'>Repeat</option>".
                 "<option value='asap'>ASAP</option>".
                 "</select> </td>".
-                "<td> <input type='datetime-local' name='duration' value='$row_duration'> </td>".
-                "<td> <input type='date' name='start_date' value='$row_start_date'> </td>".
-                "<td> <input type='time' name='start_time' value='$row_start_time'> </td>".
-                "<td> <input type='date' name='finish_date' value='$row_finish_date'> </td>".
-                "<td> <input type='time' name='finish_time' value='$row_finish_time'> </td>".
-                "<td> <input type='datetime-local' name='repeat_interval' value='$row_repeat_interval'> </td> </tr>";
+                "<td> <input type='datetime-local' name='duration' value='$rowTask->duration'> </td>".
+                "<td> <input type='date' name='start_date' value='$rowTask->start_date'> </td>".
+                "<td> <input type='time' name='start_time' value='$rowTask->start_time'> </td>".
+                "<td> <input type='date' name='finish_date' value='$rowTask->finish_date'> </td>".
+                "<td> <input type='time' name='finish_time' value='$rowTask->finish_time'> </td>".
+                "<td> <input type='datetime-local' name='repeat_interval' value='$rowTask->repeat_interval'> </td> </tr>";
             } else {
-                echo "<tr onclick='RowClick(\"selectedTaskId\", this);' $style> <td>$row_id</td>".
-                "<td> $row_user_id </td>".
-                "<td> $row_task </td>".
-                "<td> $row_next_step </td>".
-                "<td> $row_percent_completed </td>".
-                "<td> $row_is_private </td>".
-                "<td> $row_type </td>".
-                "<td> $row_duration </td>".
-                "<td> $row_start_date </td>".
-                "<td> $row_start_time </td>".
-                "<td> $row_finish_date </td>".
-                "<td> $row_finish_time </td>".
-                "<td> $row_repeat_interval </td> </tr>";
+                echo "<tr onclick='RowClick(\"selectedTaskId\", this);' $style> <td>$rowTask->id</td>".
+                "<td> $rowTask->user_id </td>".
+                "<td> $rowTask->task </td>".
+                "<td> $rowTask->next_step </td>".
+                "<td> $rowTask->percent_completed </td>".
+                "<td> $rowTask->is_private </td>".
+                "<td> $rowTask->type </td>".
+                "<td> $rowTask->duration </td>".
+                "<td> $rowTask->start_date </td>".
+                "<td> $rowTask->start_time </td>".
+                "<td> $rowTask->finish_date </td>".
+                "<td> $rowTask->finish_time </td>".
+                "<td> $rowTask->repeat_interval </td> </tr>";
             }
         }
     } else {
@@ -125,24 +145,24 @@ function tasks($conn,$selectedUserId,&$selectedTaskId)
 
     if(filter_has_var(INPUT_POST, 'input_task'))
     {
-        echo "<tr> <td>$id</td>".
-                "<td> <input type='text' name='user_id' value='$user_id'> </td>".
-                "<td> <input type='text' name='task' value='$task'> </td>".
-                "<td> <input type='text' name='next_step' value='$next_step'> </td>".
-                "<td> <input type='text' name='percent_completed' value='$percent_completed'> </td>".
-                "<td> <input type='checkbox' name='is_private' value='$is_private'> </td>".
+        echo "<tr> <td>$task->id</td>".
+                "<td> <input type='text' name='user_id' value='$task->user_id'> </td>".
+                "<td> <input type='text' name='task' value='$task->task'> </td>".
+                "<td> <input type='text' name='next_step' value='$task->next_step'> </td>".
+                "<td> <input type='text' name='percent_completed' value='$task->percent_completed'> </td>".
+                "<td> <input type='checkbox' name='is_private' value='$task->is_private'> </td>".
                 //"<td> <input type='text' name='type' value='$type'> </td>".
                 "<td> <select name='type'>".
                 "<option value='normal'>Normal</option>".
                 "<option value='repeat'>Repeat</option>".
                 "<option value='asap'>ASAP</option>".
                 "</select> </td>".
-                "<td> <input type='datetime-local' name='duration' value='$duration'> </td>".
-                "<td> <input type='date' name='start_date' value='$start_date'> </td>".
-                "<td> <input type='time' name='start_time' value='$start_time'> </td>".
-                "<td> <input type='date' name='finish_date' value='$finish_date'> </td>".
-                "<td> <input type='time' name='finish_time' value='$finish_time'> </td>".
-                "<td> <input type='datetime-local' name='repeat_interval' value='$repeat_interval'> </td> </tr>";
+                "<td> <input type='datetime-local' name='duration' value='$task->duration'> </td>".
+                "<td> <input type='date' name='start_date' value='$task->start_date'> </td>".
+                "<td> <input type='time' name='start_time' value='$task->start_time'> </td>".
+                "<td> <input type='date' name='finish_date' value='$task->finish_date'> </td>".
+                "<td> <input type='time' name='finish_time' value='$task->finish_time'> </td>".
+                "<td> <input type='datetime-local' name='repeat_interval' value='$task->repeat_interval'> </td> </tr>";
     }
 
     echo "</table>";
@@ -150,39 +170,39 @@ function tasks($conn,$selectedUserId,&$selectedTaskId)
     if(filter_has_var(INPUT_POST, 'input_task'))
     {
         echo '<br>';
-        echo '<input type="submit" name="insert_task" value="Submit new task"/><br>';
+        echo '<input type="submit" name="sql_insert_task" value="Submit new task"/><br>';
         echo '<br>';
     }
 
     if(filter_has_var(INPUT_POST, 'update_task'))
     {
         echo '<br>';
-        echo '<input type="submit" name="save_task" value="Save changes"/><br>';
+        echo '<input type="submit" name="sql_update_task" value="Save changes"/><br>';
         echo '<br>';
     }
 
     $lastTask = -1;
 
-    if(filter_has_var(INPUT_POST, 'insert_task'))
+    if(filter_has_var(INPUT_POST, 'sql_insert_task'))
     {    
         $sql = "INSERT INTO tasks (user_id, task, next_step, percent_completed, is_private, type, duration, start_date, start_time, finish_date, finish_time, repeat_interval) ".
-                "VALUES ('$selectedUserId', '$task', '$next_step', '$percent_completed', '$is_private', '$type', '$duration', '$start_date', '$start_time', '$finish_date', '$finish_time', '$repeat_interval')";
+                "VALUES ('$selectedUserId', '$task->task', '$task->next_step', '$task->percent_completed', '$task->is_private', '$task->type', '$task->duration', '$task->start_date', '$task->start_time', '$task->finish_date', '$task->finish_time', '$task->repeat_interval')";
 
         if ($conn->query($sql) === TRUE) {
             $lastTask = $conn->insert_id;
             echo "New record created successfully. Last inserted ID is: $lastTask <br>";
 
-            postRedirect();
+            postRedirect(1);
         } else {
             echo "Error: $sql <br> $conn->error <br>";
         }
     }
 
-    if(filter_has_var(INPUT_POST, 'save_task'))
+    if(filter_has_var(INPUT_POST, 'sql_update_task'))
     {
-        $sql = "UPDATE tasks SET user_id='$user_id', task='$task', next_step='$next_step', percent_completed='$percent_completed', ".
-                "is_private='$is_private', type='$type', duration='$duration', start_date='$start_date', ".
-                "start_time='$start_time', finish_date='$finish_date', finish_time='$finish_time', repeat_interval='$repeat_interval' ".
+        $sql = "UPDATE tasks SET user_id='$task->user_id', task='$task->task', next_step='$task->next_step', percent_completed='$task->percent_completed', ".
+                "is_private='$task->is_private', type='$task->type', duration='$task->duration', start_date='$task->start_date', ".
+                "start_time='$task->start_time', finish_date='$task->finish_date', finish_time='$task->finish_time', repeat_interval='$task->repeat_interval' ".
                 "WHERE id=$selectedTaskId";
 
         if ($conn->query($sql) === TRUE) {
@@ -192,7 +212,7 @@ function tasks($conn,$selectedUserId,&$selectedTaskId)
         }
     }
 
-    if(filter_has_var(INPUT_POST, 'delete_task'))
+    if(filter_has_var(INPUT_POST, 'sql_delete_task'))
     {
         // sql to delete a record
         $sql = "DELETE FROM tasks WHERE id=$selectedTaskId";
@@ -200,7 +220,7 @@ function tasks($conn,$selectedUserId,&$selectedTaskId)
         if ($conn->query($sql) === TRUE) {
             echo "Record deleted successfully";
 
-            postRedirect();
+            postRedirect(2);
         } else {
             echo "Error deleting record: " . $conn->error;
         }

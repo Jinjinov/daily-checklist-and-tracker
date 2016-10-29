@@ -14,13 +14,27 @@ and open the template in the editor.
     <body>
         <form action="" method="post" id="theForm">
             
-            <br>
-            
-            <input type="submit" name="drop_table" value="Delete tables"/><br>
-            
-            <br>
-            
             <?php
+            
+            $admin = filter_input(INPUT_POST, 'admin');
+            
+            if($admin)
+            {
+                echo "<br>";
+                echo "<label><input type='checkbox' name='admin' value='Administrator' onchange='this.form.submit();' checked>Administrator</label>";
+                echo "<br>";
+                
+                echo "<br>";
+                echo "<input type='submit' name='sql_drop_table' value='Delete tables'/><br>";
+                echo "<br>";
+            }
+            else
+            {
+                echo "<br>";
+                echo "<label><input type='checkbox' name='admin' value='Administrator' onchange='this.form.submit();'>Administrator</label>";
+                echo "<br>";
+                echo "<br>";
+            }
             
             if(!isset($_SESSION)) 
             { 
@@ -28,6 +42,10 @@ and open the template in the editor.
             }
             if(isset($_SESSION['redirect_in_progress']))
             {
+                $code = $_SESSION['redirect_in_progress'];
+                
+                echo "<script type='text/javascript'>alert('$code submitted successfully!')</script>";
+                
                 unset($_SESSION['redirect_in_progress']);
                 
                 $selectedUserId = $_SESSION['selectedUserId'];
@@ -43,7 +61,7 @@ and open the template in the editor.
                 // TODO: read ID from hidden input field 3x - how to save variable on postRedirect()
             }
             
-            function postRedirect()
+            function postRedirect($code)
             {
                 // TODO: save post data on Post-Redirect-Get
                 global $selectedUserId;
@@ -54,7 +72,7 @@ and open the template in the editor.
                 { 
                     session_start(); 
                 }
-                $_SESSION['redirect_in_progress'] = 1;
+                $_SESSION['redirect_in_progress'] = $code;
                 
                 $_SESSION['selectedUserId'] = $selectedUserId;
                 $_SESSION['selectedTaskId'] = $selectedTaskId;
@@ -66,7 +84,10 @@ and open the template in the editor.
                 exit();
             }
             
-            // put your code here
+            ///////////////////////////////////////////////////////////////////////
+            // connect to mysql
+            ///////////////////////////////////////////////////////////////////////
+            
             $servername = "localhost";
             $username = "root";
             $password = "";
@@ -79,7 +100,10 @@ and open the template in the editor.
                 die("Connection failed: " . $conn->connect_error);
             }
 
-            // Create database
+            ///////////////////////////////////////////////////////////////////////
+            // create database
+            ///////////////////////////////////////////////////////////////////////
+            
             $sql = "CREATE DATABASE IF NOT EXISTS daily_cat";
             if ($conn->query($sql) === TRUE) {
                 //echo "Database created successfully<br>";
@@ -93,13 +117,13 @@ and open the template in the editor.
             // drop table
             ///////////////////////////////////////////////////////////////////////
             
-            if(filter_has_var(INPUT_POST, 'drop_table'))
+            if(filter_has_var(INPUT_POST, 'sql_drop_table'))
             {
                 $conn->query('DROP TABLE IF EXISTS users');
                 $conn->query('DROP TABLE IF EXISTS tasks');
                 $conn->query('DROP TABLE IF EXISTS days');
                 
-                postRedirect();
+                postRedirect(3);
             }
 
             ///////////////////////////////////////////////////////////////////////
