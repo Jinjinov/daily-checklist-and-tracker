@@ -22,9 +22,7 @@ and open the template in the editor.
             {
                 echo "<br>";
                 echo "<label><input type='checkbox' name='admin' value='Administrator' onchange='this.form.submit();' checked>Administrator</label>";
-                echo "<br>";
-                
-                echo "<br>";
+
                 echo "<input type='submit' name='sql_drop_table' value='Delete tables'/><br>";
                 echo "<br>";
             }
@@ -166,19 +164,22 @@ and open the template in the editor.
 
                 echo "<br>";
 
-                ///////////////////////////////////////////////////////////////////////
-                // days
-                ///////////////////////////////////////////////////////////////////////
+                if($selectedTaskId != null)
+                {
+                    ///////////////////////////////////////////////////////////////////////
+                    // days
+                    ///////////////////////////////////////////////////////////////////////
 
-                include 'days.php';
+                    include 'days.php';
 
-                create_days_table($conn);
-                $day = get_day();
-                days_buttons($selectedTaskId,$selectedDayId);
-                days_table($conn,$selectedUserId,$selectedDayId,$day);
-                insert_day($conn,$selectedUserId,$selectedTaskId,$day);
-                update_day($conn,$selectedDayId,$day);
-                delete_day($conn,$selectedDayId);
+                    create_days_table($conn);
+                    $day = get_day();
+                    days_buttons($selectedTaskId,$selectedDayId);
+                    days_table($conn,$selectedUserId,$selectedDayId,$day);
+                    insert_day($conn,$selectedUserId,$selectedTaskId,$day);
+                    update_day($conn,$selectedDayId,$day);
+                    delete_day($conn,$selectedDayId);
+                }
             }
             
             ///////////////////////////////////////////////////////////////////////

@@ -66,23 +66,20 @@ function get_task()
 
 function tasks_buttons($selectedTaskId)
 {
-    echo '<input type="submit" name="input_task" value="Add new task"/><br>';
-    echo '<br>';
+    echo '<input type="submit" name="input_task" value="Add new task"/>';
     
     if($selectedTaskId != null){
-        echo '<input type="submit" name="sql_delete_task" value="Delete selected task"/><br>';
-        echo '<br>';
-        echo '<input type="submit" name="update_task" value="Update selected task"/><br>';
-        echo '<br>';
+        echo '<input type="submit" name="sql_delete_task" value="Delete selected task"/>';
+        echo '<input type="submit" name="update_task" value="Update selected task"/>';
     }
     
     if(filter_has_var(INPUT_POST, 'input_task')){
-        echo '<input type="submit" name="sql_insert_task" value="Submit new task"/><br>';
-        echo '<br>';
+        echo '<input type="submit" name="sql_insert_task" value="Submit new task"/>';
     }
 
     if(filter_has_var(INPUT_POST, 'update_task')){
-        echo '<input type="submit" name="sql_update_task" value="Save changes"/><br>';
+        echo '<input type="submit" name="sql_update_task" value="Save changes"/>';
+        echo '<br>';
         echo '<br>';
     }
 }

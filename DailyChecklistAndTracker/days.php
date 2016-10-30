@@ -44,24 +44,21 @@ function get_day()
 function days_buttons($selectedTaskId,$selectedDayId)
 {
     if($selectedTaskId > 0){
-        echo '<input type="submit" name="input_day" value="Add new day"/><br>';
-        echo '<br>';
+        echo '<input type="submit" name="input_day" value="Add new day"/>';
     }
     
     if($selectedDayId != null){
-        echo '<input type="submit" name="sql_delete_day" value="Delete selected day"/><br>';
-        echo '<br>';
-        echo '<input type="submit" name="update_day" value="Update selected day"/><br>';
-        echo '<br>';
+        echo '<input type="submit" name="sql_delete_day" value="Delete selected day"/>';
+        echo '<input type="submit" name="update_day" value="Update selected day"/>';
     }
     
     if(filter_has_var(INPUT_POST, 'input_day')){
-        echo '<input type="submit" name="sql_insert_day" value="Submit day"/><br>';
-        echo '<br>';
+        echo '<input type="submit" name="sql_insert_day" value="Submit day"/>';
     }
 
     if(filter_has_var(INPUT_POST, 'update_day')){
-        echo '<input type="submit" name="sql_update_day" value="Save changes"/><br>';
+        echo '<input type="submit" name="sql_update_day" value="Save changes"/>';
+        echo '<br>';
         echo '<br>';
     }
 }

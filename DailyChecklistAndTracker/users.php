@@ -42,23 +42,20 @@ function get_user()
 
 function users_buttons($selectedUserId)
 {
-    echo '<input type="submit" name="input_user" value="Add new user"/><br>';
-    echo '<br>';
+    echo '<input type="submit" name="input_user" value="Add new user"/>';
 
     if($selectedUserId != null){
-        echo '<input type="submit" name="sql_delete_user" value="Delete selected user"/><br>';
-        echo '<br>';
-        echo '<input type="submit" name="update_user" value="Update selected user"/><br>';
-        echo '<br>';
+        echo '<input type="submit" name="sql_delete_user" value="Delete selected user"/>';
+        echo '<input type="submit" name="update_user" value="Update selected user"/>';
     }
     
     if(filter_has_var(INPUT_POST, 'input_user')){
-        echo '<input type="submit" name="sql_insert_user" value="Submit user"/><br>';
-        echo '<br>';
+        echo '<input type="submit" name="sql_insert_user" value="Submit user"/>';
     }
 
     if(filter_has_var(INPUT_POST, 'update_user')){
-        echo '<input type="submit" name="sql_update_user" value="Save changes"/><br>';
+        echo '<input type="submit" name="sql_update_user" value="Save changes"/>';
+        echo '<br>';
         echo '<br>';
     }
 }
