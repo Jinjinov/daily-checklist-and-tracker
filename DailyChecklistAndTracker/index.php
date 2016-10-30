@@ -125,17 +125,13 @@ and open the template in the editor.
             }
 
             ///////////////////////////////////////////////////////////////////////
-            //
+            // users
             ///////////////////////////////////////////////////////////////////////
             
-            if($selectedUserId == null)
+            include 'users.php';
+
+            if($admin)
             {
-                ///////////////////////////////////////////////////////////////////////
-                // users
-                ///////////////////////////////////////////////////////////////////////
-
-                include 'users.php';
-
                 create_users_table($conn);
                 $user = get_user();
                 users_buttons($selectedUserId);
@@ -143,6 +139,48 @@ and open the template in the editor.
                 insert_user($conn,$user);
                 update_user($conn,$selectedUserId,$user);
                 delete_user($conn,$selectedUserId);
+            }
+            
+            if(filter_has_var(INPUT_POST, 'login'))
+            {
+                $username = filter_input(INPUT_POST, 'username');
+                $password = filter_input(INPUT_POST, 'password');
+
+                $sql = "SELECT id, password FROM users WHERE username='$username'";
+                $result = $conn->query($sql);
+                if ($result->num_rows === 1) {
+                    $row = $result->fetch_array(MYSQLI_ASSOC);
+                    if (password_verify($password, $row['password'])) {
+                        $selectedUserId = $row['id'];
+                    }
+                }
+            }
+            
+            if($selectedUserId == null)
+            {
+                ///////////////////////////////////////////////////////////////////////
+                // users
+                ///////////////////////////////////////////////////////////////////////
+
+                if(filter_has_var(INPUT_POST, 'create_new_account'))
+                {
+                    echo "<label>Username: <input type='text' name='username'></label><br>";
+                    echo "<label>Password: <input type='text' name='password'></label><br>";
+                    echo "<label>Nickname: <input type='text' name='display_name'></label><br>";
+                    echo "<label>Image: <select name='display_image'>";
+                    echo "<option value='image1'>Image 1</option>";
+                    echo "<option value='image2'>Image 2</option>";
+                    echo "<option value='image3'>Image 3</option>";
+                    echo "</select></label><br>";
+                    echo '<input type="submit" name="sql_insert_user" value="Create new account"/>';
+                }
+                else
+                {
+                    echo '<input type="submit" name="create_new_account" value="Create new account"/><br>';
+                    echo "<label>Username: <input type='text' name='username'></label><br>";
+                    echo "<label>Password: <input type='text' name='password'></label><br>";
+                    echo '<input type="submit" name="login" value="Login"/>';
+                }
 
                 echo "<br>";
             }

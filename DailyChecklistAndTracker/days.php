@@ -9,7 +9,7 @@ function create_days_table($conn)
         user_id INT UNSIGNED, 
         completed BOOL NOT NULL DEFAULT 0,
         time_spent TIME,
-        step_done VARCHAR(256)
+        step_done VARCHAR(255)
     )";
 
     if ($conn->query($sql) === TRUE) {
@@ -112,6 +112,24 @@ function days_table($conn,$selectedUserId,&$selectedDayId,Day $day)
     }
 
     echo "</table>";
+}
+
+function task_days($conn,$selectedTaskId)
+{
+    $sql = "SELECT id, completed, time_spent, step_done FROM days WHERE task_id = $selectedTaskId";
+    $result = $conn->query($sql);
+    // TODO: if ($conn->query($sql) === TRUE)
+    
+    //Copy result into a associative array
+    $resultArray = $result->fetch_all(MYSQLI_ASSOC);
+
+    //Copy result into a numeric array
+    //$resultArray = $result->fetch_all(MYSQLI_NUM);
+
+    //Copy result into both a associative and numeric array
+    //$resultArray = $result->fetch_all(MYSQLI_BOTH);
+    
+    return $resultArray;
 }
 
 function insert_day($conn,$selectedUserId,$selectedTaskId,Day $day)

@@ -5,10 +5,10 @@ function create_users_table($conn)
     // sql to create table
     $sql = "CREATE TABLE IF NOT EXISTS users (
         id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, 
-        username VARCHAR(64) NOT NULL,
-        password VARCHAR(64) NOT NULL,
-        display_name VARCHAR(64) NOT NULL,
-        display_image VARCHAR(64) NOT NULL
+        username VARCHAR(255) NOT NULL,
+        password VARCHAR(255) NOT NULL,
+        display_name VARCHAR(255) NOT NULL,
+        display_image VARCHAR(255) NOT NULL
     )";
 
     if ($conn->query($sql) === TRUE) {
@@ -117,7 +117,9 @@ function insert_user($conn,User $user)
 
     if(filter_has_var(INPUT_POST, 'sql_insert_user'))
     {
-        $sql = "INSERT INTO users (username, password, display_name, display_image) VALUES ('$user->username', '$user->password', '$user->display_name', '$user->display_image')";
+        $password = password_hash($user->password, PASSWORD_DEFAULT);
+        
+        $sql = "INSERT INTO users (username, password, display_name, display_image) VALUES ('$user->username', '$password', '$user->display_name', '$user->display_image')";
 
         if ($conn->query($sql) === TRUE) {
             $lastUser = $conn->insert_id;
@@ -136,7 +138,9 @@ function update_user($conn,&$selectedUserId,User $user)
 {
     if(filter_has_var(INPUT_POST, 'sql_update_user'))
     {
-        $sql = "UPDATE users SET username='$user->username', password='$user->password', display_name='$user->display_name', display_image='$user->display_image' WHERE id=$selectedUserId";
+        $password = password_hash($user->password, PASSWORD_DEFAULT);
+        
+        $sql = "UPDATE users SET username='$user->username', password='$password', display_name='$user->display_name', display_image='$user->display_image' WHERE id=$selectedUserId";
 
         if ($conn->query($sql) === TRUE) {
             echo "Record updated successfully";

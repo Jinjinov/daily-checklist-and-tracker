@@ -6,8 +6,8 @@ function create_tasks_table($conn)
     $sql = "CREATE TABLE IF NOT EXISTS tasks (
         id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, 
         user_id INT UNSIGNED NOT NULL, 
-        task VARCHAR(256) NOT NULL,
-        next_step VARCHAR(256),
+        task VARCHAR(255) NOT NULL,
+        next_step VARCHAR(255),
         percent_completed TINYINT UNSIGNED,
         is_private BOOL,
         type ENUM('normal', 'repeat', 'asap'),
