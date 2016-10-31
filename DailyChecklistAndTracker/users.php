@@ -3,7 +3,7 @@
 function create_users_table($conn)
 {
     // sql to create table
-    $sql = "CREATE TABLE IF NOT EXISTS users (
+    $sqlString = "CREATE TABLE IF NOT EXISTS users (
         id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, 
         username VARCHAR(255) NOT NULL,
         password VARCHAR(255) NOT NULL,
@@ -11,7 +11,7 @@ function create_users_table($conn)
         display_image VARCHAR(255) NOT NULL
     )";
 
-    if ($conn->query($sql) === TRUE) {
+    if ($conn->query($sqlString) === TRUE) {
         //echo "Table users created successfully<br>";
     } else {
         echo "Error creating table: $conn->error <br>";
@@ -27,7 +27,7 @@ class User
     var $display_image;
 }
 
-function get_user()
+function get_submitted_user()
 {
     $user = new User();
     
@@ -60,11 +60,9 @@ function users_buttons($selectedUserId)
     }
 }
 
-function users_table($conn,&$selectedUserId,User $user)
+function users_table($conn,$selectedUserId,User $user)
 {
-    $sql = "SELECT id, username, password, display_name, display_image FROM users";
-    $result = $conn->query($sql);
-    // TODO: if ($conn->query($sql) === TRUE)
+    $result = $conn->query('SELECT id, username, password, display_name, display_image FROM users');
 
     echo "<table>";
     echo "<tr> <th>ID</th> <th>Username</th> <th>Password</th> <th>Display name</th> <th>Display image</th> </tr>";
@@ -111,38 +109,56 @@ function users_table($conn,&$selectedUserId,User $user)
     echo '</table>';
 }
 
-function insert_user($conn,User $user)
+function get_selected_user($conn,$selectedUserId)
 {
-    $lastUser = -1;
+    $statement = $conn->prepare("SELECT username, password, display_name, display_image FROM users WHERE id = ?");
+    $statement->bind_param("i", $selectedUserId);
+    $statement->execute();
+    $result = $statement->get_result();
+                
+    $row = $result->fetch_assoc();
 
+    $rowUser = new User();
+    
+    $rowUser->id = $selectedUserId;
+    $rowUser->username = $row["username"];
+    $rowUser->password = $row["password"];
+    $rowUser->display_name = $row["display_name"];
+    $rowUser->display_image = $row["display_image"];
+    
+    return $rowUser;
+}
+
+function insert_user($conn,&$selectedUserId,User $user)
+{
     if(filter_has_var(INPUT_POST, 'sql_insert_user'))
     {
         $password = password_hash($user->password, PASSWORD_DEFAULT);
         
-        $sql = "INSERT INTO users (username, password, display_name, display_image) VALUES ('$user->username', '$password', '$user->display_name', '$user->display_image')";
-
-        if ($conn->query($sql) === TRUE) {
-            $lastUser = $conn->insert_id;
-            echo "New record created successfully. Last inserted ID is: $lastUser <br>";
+        $statement = $conn->prepare("INSERT INTO users (username, password, display_name, display_image) VALUES (?, ?, ?, ?)");
+        $statement->bind_param("ssss", $user->username, $password, $user->display_name, $user->display_image);
+        
+        if ($statement->execute() === TRUE) {
+            $selectedUserId = $conn->insert_id;
+            echo "New record created successfully. Last inserted ID is: $selectedUserId <br>";
 
             postRedirect(1);
         } else {
-            echo "Error: $sql <br> $conn->error <br>";
+            echo "Error: $conn->error <br>";
         }
     }
-    
-    return $lastUser;
 }
 
-function update_user($conn,&$selectedUserId,User $user)
+function update_user($conn,$selectedUserId,User $user)
 {
     if(filter_has_var(INPUT_POST, 'sql_update_user'))
     {
         $password = password_hash($user->password, PASSWORD_DEFAULT);
         
-        $sql = "UPDATE users SET username='$user->username', password='$password', display_name='$user->display_name', display_image='$user->display_image' WHERE id=$selectedUserId";
-
-        if ($conn->query($sql) === TRUE) {
+        $statement = $conn->prepare("UPDATE users SET username=?, password=?, display_name=?, display_image=? WHERE id=?");
+        $statement->bind_param("ssssi", $user->username, $password, $user->display_name, $user->display_image, $selectedUserId);
+        
+        if ($statement->execute() === TRUE) {
             echo "Record updated successfully";
             
             postRedirect(2);
@@ -152,14 +168,16 @@ function update_user($conn,&$selectedUserId,User $user)
     }
 }
 
-function delete_user($conn,&$selectedUserId)
+function delete_user($conn,$selectedUserId)
 {
     if(filter_has_var(INPUT_POST, 'sql_delete_user'))
     {
-        // sql to delete a record
-        $sql = "DELETE FROM users WHERE id=$selectedUserId";
-
-        if ($conn->query($sql) === TRUE) {
+        // TODO: delete all user tasks
+        
+        $statement = $conn->prepare("DELETE FROM users WHERE id=?");
+        $statement->bind_param("i", $selectedUserId);
+        
+        if ($statement->execute() === TRUE) {
             echo "Record deleted successfully";
 
             postRedirect(3);

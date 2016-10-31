@@ -3,7 +3,7 @@
 function create_tasks_table($conn)
 {
     // sql to create table
-    $sql = "CREATE TABLE IF NOT EXISTS tasks (
+    $sqlString = "CREATE TABLE IF NOT EXISTS tasks (
         id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, 
         user_id INT UNSIGNED NOT NULL, 
         task VARCHAR(255) NOT NULL,
@@ -19,7 +19,7 @@ function create_tasks_table($conn)
         repeat_interval DATETIME
     )";
 
-    if ($conn->query($sql) === TRUE) {
+    if ($conn->query($sqlString) === TRUE) {
         //echo "Table tasks created successfully<br>";
     } else {
         echo "Error creating table: $conn->error <br>";
@@ -43,7 +43,7 @@ class Task
     var $repeat_interval;
 }
 
-function get_task()
+function get_submitted_task()
 {
     $task = new Task();
     
@@ -84,12 +84,13 @@ function tasks_buttons($selectedTaskId)
     }
 }
 
-function tasks_table($conn,$selectedUserId,&$selectedTaskId,Task $task)
+function tasks_table($conn,$selectedUserId,$selectedTaskId,Task $task)
 {
-    $sql = "SELECT id, user_id, task, next_step, percent_completed, is_private, type, duration, start_date, start_time, finish_date, finish_time, repeat_interval FROM tasks WHERE user_id = $selectedUserId";
-    $result = $conn->query($sql);
-    // TODO: if ($conn->query($sql) === TRUE)
-
+    $statement = $conn->prepare("SELECT id, user_id, task, next_step, percent_completed, is_private, type, duration, start_date, start_time, finish_date, finish_time, repeat_interval FROM tasks WHERE user_id = ?");
+    $statement->bind_param("i", $selectedUserId);
+    $statement->execute();
+    $result = $statement->get_result();
+    
     echo "<table>";
     echo "<tr> <th>ID</th> <th>User ID</th> <th>Task</th> <th>Next step</th> <th>Completed %</th> <th>is private</th> <th>Type</th> ".
                 "<th>Duration</th> <th>Start</th> <th>Time</th> <th>Finish</th> <th>Time</th> <th>Repeat</th> </tr>";
@@ -178,38 +179,37 @@ function tasks_table($conn,$selectedUserId,&$selectedTaskId,Task $task)
     echo "</table>";
 }
 
-function insert_task($conn,$selectedUserId,Task $task)
+function insert_task($conn,$selectedUserId,&$selectedTaskId,Task $task)
 {
-    $lastTask = -1;
-
     if(filter_has_var(INPUT_POST, 'sql_insert_task'))
-    {    
-        $sql = "INSERT INTO tasks (user_id, task, next_step, percent_completed, is_private, type, duration, start_date, start_time, finish_date, finish_time, repeat_interval) ".
-                "VALUES ('$selectedUserId', '$task->task', '$task->next_step', '$task->percent_completed', '$task->is_private', '$task->type', '$task->duration', '$task->start_date', '$task->start_time', '$task->finish_date', '$task->finish_time', '$task->repeat_interval')";
-
-        if ($conn->query($sql) === TRUE) {
-            $lastTask = $conn->insert_id;
-            echo "New record created successfully. Last inserted ID is: $lastTask <br>";
+    {
+        $statement = $conn->prepare(
+                "INSERT INTO tasks (user_id, task, next_step, percent_completed, is_private, type, duration, start_date, start_time, finish_date, finish_time, repeat_interval) ".
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $statement->bind_param("issiisssssss", $selectedUserId, $task->task, $task->next_step, $task->percent_completed, $task->is_private, $task->type, $task->duration, $task->start_date, $task->start_time, $task->finish_date, $task->finish_time, $task->repeat_interval);
+        
+        if ($statement->execute() === TRUE) {
+            $selectedTaskId = $conn->insert_id;
+            echo "New record created successfully. Last inserted ID is: $selectedTaskId <br>";
 
             postRedirect(1);
         } else {
-            echo "Error: $sql <br> $conn->error <br>";
+            echo "Error: $conn->error <br>";
         }
     }
-    
-    return $lastTask;
 }
 
-function update_task($conn,&$selectedTaskId,Task $task)
+function update_task($conn,$selectedTaskId,Task $task)
 {
     if(filter_has_var(INPUT_POST, 'sql_update_task'))
     {
-        $sql = "UPDATE tasks SET user_id='$task->user_id', task='$task->task', next_step='$task->next_step', percent_completed='$task->percent_completed', ".
-                "is_private='$task->is_private', type='$task->type', duration='$task->duration', start_date='$task->start_date', ".
-                "start_time='$task->start_time', finish_date='$task->finish_date', finish_time='$task->finish_time', repeat_interval='$task->repeat_interval' ".
-                "WHERE id=$selectedTaskId";
+        $statement = $conn->prepare("UPDATE tasks SET user_id=?, task=?, next_step=?, percent_completed=?, ".
+                "is_private=?, type=?, duration=?, start_date=?, ".
+                "start_time=?, finish_date=?, finish_time=?, repeat_interval=? ".
+                "WHERE id=?");
+        $statement->bind_param("issiisssssssi", $task->user_id, $task->task, $task->next_step, $task->percent_completed, $task->is_private, $task->type, $task->duration, $task->start_date, $task->start_time, $task->finish_date, $task->finish_time, $task->repeat_interval, $selectedTaskId);
 
-        if ($conn->query($sql) === TRUE) {
+        if ($statement->execute() === TRUE) {
             echo "Record updated successfully";
             
             postRedirect(2);
@@ -219,14 +219,16 @@ function update_task($conn,&$selectedTaskId,Task $task)
     }
 }
 
-function delete_task($conn,&$selectedTaskId)
+function delete_task($conn,$selectedTaskId)
 {
     if(filter_has_var(INPUT_POST, 'sql_delete_task'))
     {
-        // sql to delete a record
-        $sql = "DELETE FROM tasks WHERE id=$selectedTaskId";
-
-        if ($conn->query($sql) === TRUE) {
+        // TODO: delete all task days
+        
+        $statement = $conn->prepare("DELETE FROM tasks WHERE id=?");
+        $statement->bind_param("i", $selectedTaskId);
+        
+        if ($statement->execute() === TRUE) {
             echo "Record deleted successfully";
 
             postRedirect(3);

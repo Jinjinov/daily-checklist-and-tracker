@@ -13,7 +13,6 @@ and open the template in the editor.
     </head>
     <body>
         <form action="" method="post" id="theForm">
-            
             <?php
             
             $admin = filter_input(INPUT_POST, 'admin');
@@ -55,13 +54,10 @@ and open the template in the editor.
                 $selectedUserId = filter_input(INPUT_POST, 'selectedUserId');
                 $selectedTaskId = filter_input(INPUT_POST, 'selectedTaskId');
                 $selectedDayId = filter_input(INPUT_POST, 'selectedDayId');
-            
-                // TODO: read ID from hidden input field 3x - how to save variable on postRedirect()
             }
             
             function postRedirect($code)
             {
-                // TODO: save post data on Post-Redirect-Get
                 global $selectedUserId;
                 global $selectedTaskId;
                 global $selectedDayId;
@@ -102,8 +98,7 @@ and open the template in the editor.
             // create database
             ///////////////////////////////////////////////////////////////////////
             
-            $sql = "CREATE DATABASE IF NOT EXISTS daily_cat";
-            if ($conn->query($sql) === TRUE) {
+            if ($conn->query('CREATE DATABASE IF NOT EXISTS daily_cat') === TRUE) {
                 //echo "Database created successfully<br>";
             } else {
                 echo "Error creating database: $conn->error <br>";
@@ -121,6 +116,10 @@ and open the template in the editor.
                 $conn->query('DROP TABLE IF EXISTS tasks');
                 $conn->query('DROP TABLE IF EXISTS days');
                 
+                $selectedUserId = null;
+                $selectedTaskId = null;
+                $selectedDayId = null;
+                
                 postRedirect(4);
             }
 
@@ -133,12 +132,14 @@ and open the template in the editor.
             if($admin)
             {
                 create_users_table($conn);
-                $user = get_user();
+                $user = get_submitted_user();
                 users_buttons($selectedUserId);
                 users_table($conn,$selectedUserId,$user);
-                insert_user($conn,$user);
+                insert_user($conn,$selectedUserId,$user);
                 update_user($conn,$selectedUserId,$user);
                 delete_user($conn,$selectedUserId);
+                
+                echo "<br>";
             }
             
             if(filter_has_var(INPUT_POST, 'login'))
@@ -146,14 +147,23 @@ and open the template in the editor.
                 $username = filter_input(INPUT_POST, 'username');
                 $password = filter_input(INPUT_POST, 'password');
 
-                $sql = "SELECT id, password FROM users WHERE username='$username'";
-                $result = $conn->query($sql);
+                $statement = $conn->prepare("SELECT id, password FROM users WHERE username = ?");
+                $statement->bind_param("s", $username);
+                $statement->execute();
+                $result = $statement->get_result();
+
                 if ($result->num_rows === 1) {
                     $row = $result->fetch_array(MYSQLI_ASSOC);
                     if (password_verify($password, $row['password'])) {
                         $selectedUserId = $row['id'];
                     }
                 }
+            }
+            
+            if(filter_has_var(INPUT_POST, 'sql_insert_user'))
+            {
+                $user = get_submitted_user();
+                $selectedUserId = insert_user($conn,$selectedUserId,$user);
             }
             
             if($selectedUserId == null)
@@ -168,9 +178,9 @@ and open the template in the editor.
                     echo "<label>Password: <input type='text' name='password'></label><br>";
                     echo "<label>Nickname: <input type='text' name='display_name'></label><br>";
                     echo "<label>Image: <select name='display_image'>";
-                    echo "<option value='image1'>Image 1</option>";
-                    echo "<option value='image2'>Image 2</option>";
-                    echo "<option value='image3'>Image 3</option>";
+                    echo "<option value='image.png'>Image 1</option>";
+                    echo "<option value='image.png'>Image 2</option>";
+                    echo "<option value='image.png'>Image 3</option>";
                     echo "</select></label><br>";
                     echo '<input type="submit" name="sql_insert_user" value="Create new account"/>';
                 }
@@ -181,11 +191,14 @@ and open the template in the editor.
                     echo "<label>Password: <input type='text' name='password'></label><br>";
                     echo '<input type="submit" name="login" value="Login"/>';
                 }
-
-                echo "<br>";
             }
             else
             {
+                $user = get_selected_user($conn,$selectedUserId);
+                
+                echo "$user->display_name<br>";
+                echo "<img src='$user->display_image' height='64' width='64'><br><br>";
+                
                 ///////////////////////////////////////////////////////////////////////
                 // tasks
                 ///////////////////////////////////////////////////////////////////////
@@ -193,10 +206,10 @@ and open the template in the editor.
                 include 'tasks.php';
 
                 create_tasks_table($conn);
-                $task = get_task();
+                $task = get_submitted_task();
                 tasks_buttons($selectedTaskId);
                 tasks_table($conn,$selectedUserId,$selectedTaskId,$task);
-                insert_task($conn,$selectedUserId,$task);
+                insert_task($conn,$selectedUserId,$selectedTaskId,$task);
                 update_task($conn,$selectedTaskId,$task);
                 delete_task($conn,$selectedTaskId);
 
@@ -211,10 +224,10 @@ and open the template in the editor.
                     include 'days.php';
 
                     create_days_table($conn);
-                    $day = get_day();
+                    $day = get_submitted_day();
                     days_buttons($selectedTaskId,$selectedDayId);
                     days_table($conn,$selectedUserId,$selectedDayId,$day);
-                    insert_day($conn,$selectedUserId,$selectedTaskId,$day);
+                    insert_day($conn,$selectedUserId,$selectedTaskId,$selectedDayId,$day);
                     update_day($conn,$selectedDayId,$day);
                     delete_day($conn,$selectedDayId);
                 }

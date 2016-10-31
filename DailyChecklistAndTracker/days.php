@@ -3,7 +3,7 @@
 function create_days_table($conn)
 {
     // sql to create table
-    $sql = "CREATE TABLE IF NOT EXISTS days (
+    $sqlString = "CREATE TABLE IF NOT EXISTS days (
         id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, 
         task_id INT UNSIGNED, 
         user_id INT UNSIGNED, 
@@ -12,7 +12,7 @@ function create_days_table($conn)
         step_done VARCHAR(255)
     )";
 
-    if ($conn->query($sql) === TRUE) {
+    if ($conn->query($sqlString) === TRUE) {
         //echo "Table days created successfully<br>";
     } else {
         echo "Error creating table: $conn->error <br>";
@@ -28,7 +28,7 @@ class Day
     var $step_done;
 }
 
-function get_day()
+function get_submitted_day()
 {
     $day = new Day();
     
@@ -63,12 +63,13 @@ function days_buttons($selectedTaskId,$selectedDayId)
     }
 }
 
-function days_table($conn,$selectedUserId,&$selectedDayId,Day $day)
+function days_table($conn,$selectedUserId,$selectedDayId,Day $day)
 {
-    $sql = "SELECT id, task_id, completed, time_spent, step_done FROM days WHERE user_id = $selectedUserId";
-    $result = $conn->query($sql);
-    // TODO: if ($conn->query($sql) === TRUE)
-
+    $statement = $conn->prepare("SELECT id, task_id, completed, time_spent, step_done FROM days WHERE user_id = ?");
+    $statement->bind_param("i", $selectedUserId);
+    $statement->execute();
+    $result = $statement->get_result();
+    
     echo "<table>";
     echo "<tr> <th>ID</th> <th>Task ID</th> <th>Completed</th> <th>Time spent</th> <th>Step done</th> </tr>";
 
@@ -116,10 +117,11 @@ function days_table($conn,$selectedUserId,&$selectedDayId,Day $day)
 
 function task_days($conn,$selectedTaskId)
 {
-    $sql = "SELECT id, completed, time_spent, step_done FROM days WHERE task_id = $selectedTaskId";
-    $result = $conn->query($sql);
-    // TODO: if ($conn->query($sql) === TRUE)
-    
+    $statement = $conn->prepare("SELECT id, completed, time_spent, step_done FROM days WHERE task_id = ?");
+    $statement->bind_param("i", $selectedTaskId);
+    $statement->execute();
+    $result = $statement->get_result();
+                
     //Copy result into a associative array
     $resultArray = $result->fetch_all(MYSQLI_ASSOC);
 
@@ -132,34 +134,32 @@ function task_days($conn,$selectedTaskId)
     return $resultArray;
 }
 
-function insert_day($conn,$selectedUserId,$selectedTaskId,Day $day)
+function insert_day($conn,$selectedUserId,$selectedTaskId,&$selectedDayId,Day $day)
 {
-    $lastDay = -1;
-
     if(filter_has_var(INPUT_POST, 'sql_insert_day'))
-    {    
-        $sql = "INSERT INTO days (task_id, user_id, completed, time_spent, step_done) VALUES ('$selectedTaskId', '$selectedUserId', '$day->completed', '$day->time_spent', '$day->step_done')";
-
-        if ($conn->query($sql) === TRUE) {
-            $lastDay = $conn->insert_id;
-            echo "New record created successfully. Last inserted ID is: $lastDay <br>";
+    {
+        $statement = $conn->prepare("INSERT INTO days (task_id, user_id, completed, time_spent, step_done) VALUES (?, ?, ?, ?, ?)");
+        $statement->bind_param("iiiss", $selectedTaskId, $selectedUserId, $day->completed, $day->time_spent, $day->step_done);
+        
+        if ($statement->execute() === TRUE) {
+            $selectedDayId = $conn->insert_id;
+            echo "New record created successfully. Last inserted ID is: $selectedDayId <br>";
 
             postRedirect(1);
         } else {
-            echo "Error: $sql <br> $conn->error <br>";
+            echo "Error: $conn->error <br>";
         }
     }
-    
-    return $lastDay;
 }
 
-function update_day($conn,&$selectedDayId,Day $day)
+function update_day($conn,$selectedDayId,Day $day)
 {
     if(filter_has_var(INPUT_POST, 'sql_update_day'))
     {
-        $sql = "UPDATE days SET task_id='$day->task_id', completed='$day->completed', time_spent='$day->time_spent', step_done='$day->step_done' WHERE id=$selectedDayId";
-
-        if ($conn->query($sql) === TRUE) {
+        $statement = $conn->prepare("UPDATE days SET task_id=?, completed=?, time_spent=?, step_done=? WHERE id=?");
+        $statement->bind_param("iissi", $day->task_id, $day->completed, $day->time_spent, $day->step_done, $selectedDayId);
+        
+        if ($statement->execute() === TRUE) {
             echo "Record updated successfully";
             
             postRedirect(2);
@@ -169,14 +169,14 @@ function update_day($conn,&$selectedDayId,Day $day)
     }
 }
 
-function delete_day($conn,&$selectedDayId)
+function delete_day($conn,$selectedDayId)
 {
     if(filter_has_var(INPUT_POST, 'sql_delete_day'))
     {
-        // sql to delete a record
-        $sql = "DELETE FROM days WHERE id=$selectedDayId";
-
-        if ($conn->query($sql) === TRUE) {
+        $statement = $conn->prepare("DELETE FROM days WHERE id=?");
+        $statement->bind_param("i", $selectedDayId);
+        
+        if ($statement->execute() === TRUE) {
             echo "Record deleted successfully";
 
             postRedirect(3);
