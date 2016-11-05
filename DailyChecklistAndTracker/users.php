@@ -82,28 +82,28 @@ function users_table($conn,$selectedUserId,User $user)
                 $style = "style='background:red;'";
             }
             if($selectedUserId==$rowUser->id && filter_has_var(INPUT_POST, 'update_user')){
-                echo "<tr> <td>$rowUser->id</td>".
-                "<td> <input type='text' name='username' value='$rowUser->username'> </td>".
-                "<td> <input type='text' name='password' value='$rowUser->password'> </td>".
-                "<td> <input type='text' name='display_name' value='$rowUser->display_name'> </td>".
-                "<td> <input type='text' name='display_image' value='$rowUser->display_image'> </td> </tr>";
+                echo "<tr> <td>$rowUser->id</td>";
+                echo "<td> <input type='text' name='username' value='$rowUser->username'> </td>";
+                echo "<td> <input type='text' name='password' value='$rowUser->password'> </td>";
+                echo "<td> <input type='text' name='display_name' value='$rowUser->display_name'> </td>";
+                echo "<td> <input type='text' name='display_image' value='$rowUser->display_image'> </td> </tr>";
             } else {
-                echo "<tr onclick='RowClick(\"selectedUserId\", this);' $style> <td>$rowUser->id</td>".
-                "<td> $rowUser->username </td>".
-                "<td> $rowUser->password </td>".
-                "<td> $rowUser->display_name </td>".
-                "<td> $rowUser->display_image </td> </tr>";
+                echo "<tr onclick='RowClick(\"selectedUserId\", this);' $style> <td>$rowUser->id</td>";
+                echo "<td> $rowUser->username </td>";
+                echo "<td> $rowUser->password </td>";
+                echo "<td> $rowUser->display_name </td>";
+                echo "<td> $rowUser->display_image </td> </tr>";
             }
         }
     }
 
     if(filter_has_var(INPUT_POST, 'input_user'))
     {
-        echo "<tr> <td>$user->id</td>".
-                "<td> <input type='text' name='username' value='$user->username'> </td>".
-                "<td> <input type='text' name='password' value='$user->password'> </td>".
-                "<td> <input type='text' name='display_name' value='$user->display_name'> </td>".
-                "<td> <input type='text' name='display_image' value='$user->display_image'> </td> </tr>";
+        echo "<tr> <td>$user->id</td>";
+        echo "<td> <input type='text' name='username' value='$user->username'> </td>";
+        echo "<td> <input type='text' name='password' value='$user->password'> </td>";
+        echo "<td> <input type='text' name='display_name' value='$user->display_name'> </td>";
+        echo "<td> <input type='text' name='display_image' value='$user->display_image'> </td> </tr>";
     }
 
     echo '</table>';

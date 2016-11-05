@@ -88,28 +88,28 @@ function days_table($conn,$selectedUserId,$selectedDayId,Day $day)
                 $style = "style='background:red;'";
             }
             if($selectedDayId==$rowDay->id && filter_has_var(INPUT_POST, 'update_day')){
-                echo "<tr> <td>$rowDay->id</td>".
-                    "<td> <input type='text' name='task_id' value='$rowDay->task_id'> </td>".
-                    "<td> <input type='checkbox' name='completed' value='$rowDay->completed'> </td>".
-                    "<td> <input type='time' name='time_spent' value='$rowDay->time_spent'> </td>".
-                    "<td> <input type='text' name='step_done' value='$rowDay->step_done'> </td> </tr>";
+                echo "<tr> <td>$rowDay->id</td>";
+                echo "<td> <input type='text' name='task_id' value='$rowDay->task_id'> </td>";
+                echo "<td> <input type='checkbox' name='completed' value='$rowDay->completed'> </td>";
+                echo "<td> <input type='time' name='time_spent' value='$rowDay->time_spent'> </td>";
+                echo "<td> <input type='text' name='step_done' value='$rowDay->step_done'> </td> </tr>";
             } else {
-                echo "<tr onclick='RowClick(\"selectedDayId\", this);' $style> <td>$rowDay->id</td>".
-                    "<td> $rowDay->task_id </td>".
-                    "<td> $rowDay->completed </td>".
-                    "<td> $rowDay->time_spent </td>".
-                    "<td> $rowDay->step_done </td> </tr>";
+                echo "<tr onclick='RowClick(\"selectedDayId\", this);' $style> <td>$rowDay->id</td>";
+                echo "<td> $rowDay->task_id </td>";
+                echo "<td> $rowDay->completed </td>";
+                echo "<td> $rowDay->time_spent </td>";
+                echo "<td> $rowDay->step_done </td> </tr>";
             }
         }
     }
 
     if(filter_has_var(INPUT_POST, 'input_day'))
     {
-        echo "<tr> <td>$day->id</td>".
-                "<td> <input type='text' name='task_id' value='$day->task_id'> </td>".
-                "<td> <input type='checkbox' name='completed' value='$day->completed'> </td>".
-                "<td> <input type='time' name='time_spent' value='$day->time_spent'> </td>".
-                "<td> <input type='text' name='step_done' value='$day->step_done'> </td> </tr>";
+        echo "<tr> <td>$day->id</td>";
+        echo "<td> <input type='text' name='task_id' value='$day->task_id'> </td>";
+        echo "<td> <input type='checkbox' name='completed' value='$day->completed'> </td>";
+        echo "<td> <input type='time' name='time_spent' value='$day->time_spent'> </td>";
+        echo "<td> <input type='text' name='step_done' value='$day->step_done'> </td> </tr>";
     }
 
     echo "</table>";

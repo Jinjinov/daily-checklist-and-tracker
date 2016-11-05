@@ -34,12 +34,16 @@ class Task
     var $next_step;
     var $percent_completed;
     var $is_private;
+    // asap, start / finish, repeat:
     var $type;
+    // asap:
     var $duration;
+    // start / finish:
     var $start_date;
     var $start_time;
     var $finish_date;
     var $finish_time;
+    // repeat:
     var $repeat_interval;
 }
 
@@ -53,12 +57,16 @@ function get_submitted_task()
     $task->next_step = filter_input(INPUT_POST, 'next_step');
     $task->percent_completed = filter_input(INPUT_POST, 'percent_completed');
     $task->is_private = filter_has_var(INPUT_POST, 'is_private');
+    // asap, start / finish, repeat:
     $task->type = filter_input(INPUT_POST, 'type');
+    // asap:
     $task->duration = filter_input(INPUT_POST, 'duration');
+    // start / finish:
     $task->start_date = filter_input(INPUT_POST, 'start_date');
     $task->start_time = filter_input(INPUT_POST, 'start_time');
     $task->finish_date = filter_input(INPUT_POST, 'finish_date');
     $task->finish_time = filter_input(INPUT_POST, 'finish_time');
+    // repeat:
     $task->repeat_interval = filter_input(INPUT_POST, 'repeat_interval');
     
     return $task;
@@ -105,12 +113,16 @@ function tasks_table($conn,$selectedUserId,$selectedTaskId,Task $task)
             $rowTask->next_step = $row["next_step"];
             $rowTask->percent_completed = $row["percent_completed"];
             $rowTask->is_private = $row["is_private"];
+            // asap, start / finish, repeat:
             $rowTask->type = $row["type"];
+            // asap:
             $rowTask->duration = $row["duration"];
+            // start / finish:
             $rowTask->start_date = $row["start_date"];
             $rowTask->start_time = $row["start_time"];
             $rowTask->finish_date = $row["finish_date"];
             $rowTask->finish_time = $row["finish_time"];
+            // repeat:
             $rowTask->repeat_interval = $row["repeat_interval"];
 
             $style = "";
@@ -118,62 +130,86 @@ function tasks_table($conn,$selectedUserId,$selectedTaskId,Task $task)
                 $style = "style='background:red;'";
             }
             if($selectedTaskId==$rowTask->id && filter_has_var(INPUT_POST, 'update_task')){
-                echo "<tr> <td>$rowTask->id</td>".
-                "<td> <input type='text' name='user_id' value='$rowTask->user_id'> </td>".
-                "<td> <input type='text' name='task' value='$rowTask->task'> </td>".
-                "<td> <input type='text' name='next_step' value='$rowTask->next_step'> </td>".
-                "<td> <input type='text' name='percent_completed' value='$rowTask->percent_completed'> </td>".
-                "<td> <input type='checkbox' name='is_private' value='$rowTask->is_private'> </td>".
-                //"<td> <input type='text' name='type' value='$type'> </td>".
-                "<td> <select name='type'>".
-                "<option value='normal'>Normal</option>".
-                "<option value='repeat'>Repeat</option>".
-                "<option value='asap'>ASAP</option>".
-                "</select> </td>".
-                "<td> <input type='datetime-local' name='duration' value='$rowTask->duration'> </td>".
-                "<td> <input type='date' name='start_date' value='$rowTask->start_date'> </td>".
-                "<td> <input type='time' name='start_time' value='$rowTask->start_time'> </td>".
-                "<td> <input type='date' name='finish_date' value='$rowTask->finish_date'> </td>".
-                "<td> <input type='time' name='finish_time' value='$rowTask->finish_time'> </td>".
-                "<td> <input type='datetime-local' name='repeat_interval' value='$rowTask->repeat_interval'> </td> </tr>";
+                echo "<tr> <td>$rowTask->id</td>";
+                echo "<td> <input type='text' name='user_id' value='$rowTask->user_id'> </td>";
+                echo "<td> <input type='text' name='task' value='$rowTask->task'> </td>";
+                echo "<td> <input type='text' name='next_step' value='$rowTask->next_step'> </td>";
+                echo "<td> <input type='text' name='percent_completed' value='$rowTask->percent_completed'> </td>";
+                echo "<td> <input type='checkbox' name='is_private' value='$rowTask->is_private'> </td>";
+                //echo "<td> <input type='text' name='type' value='$type'> </td>";
+                echo "<td> <select name='type'>";
+                echo "<option value='normal'>Normal</option>";
+                echo "<option value='repeat'>Repeat</option>";
+                echo "<option value='asap'>ASAP</option>";
+                echo "</select> </td>";
+                if($rowTask->type == "asap") {
+                    echo "<td> <input type='datetime-local' name='duration' value='$rowTask->duration'> </td>";
+                }
+                if($rowTask->type == "normal" || $rowTask->type == "repeat") {
+                    echo "<td> <input type='date' name='start_date' value='$rowTask->start_date'> </td>";
+                    echo "<td> <input type='time' name='start_time' value='$rowTask->start_time'> </td>";
+                }
+                if($rowTask->type == "normal") {
+                    echo "<td> <input type='date' name='finish_date' value='$rowTask->finish_date'> </td>";
+                    echo "<td> <input type='time' name='finish_time' value='$rowTask->finish_time'> </td>";
+                }
+                if($rowTask->type == "repeat") {
+                    echo "<td> <input type='datetime-local' name='repeat_interval' value='$rowTask->repeat_interval'> </td> </tr>";
+                }
             } else {
-                echo "<tr onclick='RowClick(\"selectedTaskId\", this);' $style> <td>$rowTask->id</td>".
-                "<td> $rowTask->user_id </td>".
-                "<td> $rowTask->task </td>".
-                "<td> $rowTask->next_step </td>".
-                "<td> $rowTask->percent_completed </td>".
-                "<td> $rowTask->is_private </td>".
-                "<td> $rowTask->type </td>".
-                "<td> $rowTask->duration </td>".
-                "<td> $rowTask->start_date </td>".
-                "<td> $rowTask->start_time </td>".
-                "<td> $rowTask->finish_date </td>".
-                "<td> $rowTask->finish_time </td>".
-                "<td> $rowTask->repeat_interval </td> </tr>";
+                echo "<tr onclick='RowClick(\"selectedTaskId\", this);' $style> <td>$rowTask->id</td>";
+                echo "<td> $rowTask->user_id </td>";
+                echo "<td> $rowTask->task </td>";
+                echo "<td> $rowTask->next_step </td>";
+                echo "<td> $rowTask->percent_completed </td>";
+                echo "<td> $rowTask->is_private </td>";
+                echo "<td> $rowTask->type </td>";
+                if($rowTask->type == "asap") {
+                    echo "<td> $rowTask->duration </td>";
+                }
+                if($rowTask->type == "normal" || $rowTask->type == "repeat") {
+                    echo "<td> $rowTask->start_date </td>";
+                    echo "<td> $rowTask->start_time </td>";
+                }
+                if($rowTask->type == "normal") {
+                    echo "<td> $rowTask->finish_date </td>";
+                    echo "<td> $rowTask->finish_time </td>";
+                }
+                if($rowTask->type == "repeat") {
+                    echo "<td> $rowTask->repeat_interval </td> </tr>";
+                }
             }
         }
     }
     
     if(filter_has_var(INPUT_POST, 'input_task'))
     {
-        echo "<tr> <td>$task->id</td>".
-                "<td> <input type='text' name='user_id' value='$task->user_id'> </td>".
-                "<td> <input type='text' name='task' value='$task->task'> </td>".
-                "<td> <input type='text' name='next_step' value='$task->next_step'> </td>".
-                "<td> <input type='text' name='percent_completed' value='$task->percent_completed'> </td>".
-                "<td> <input type='checkbox' name='is_private' value='$task->is_private'> </td>".
-                //"<td> <input type='text' name='type' value='$type'> </td>".
-                "<td> <select name='type'>".
-                "<option value='normal'>Normal</option>".
-                "<option value='repeat'>Repeat</option>".
-                "<option value='asap'>ASAP</option>".
-                "</select> </td>".
-                "<td> <input type='datetime-local' name='duration' value='$task->duration'> </td>".
-                "<td> <input type='date' name='start_date' value='$task->start_date'> </td>".
-                "<td> <input type='time' name='start_time' value='$task->start_time'> </td>".
-                "<td> <input type='date' name='finish_date' value='$task->finish_date'> </td>".
-                "<td> <input type='time' name='finish_time' value='$task->finish_time'> </td>".
-                "<td> <input type='datetime-local' name='repeat_interval' value='$task->repeat_interval'> </td> </tr>";
+        echo "<tr> <td>$task->id</td>";
+        echo "<td> <input type='text' name='user_id' value='$task->user_id'> </td>";
+        echo "<td> <input type='text' name='task' value='$task->task'> </td>";
+        echo "<td> <input type='text' name='next_step' value='$task->next_step'> </td>";
+        echo "<td> <input type='text' name='percent_completed' value='$task->percent_completed'> </td>";
+        echo "<td> <input type='checkbox' name='is_private' value='$task->is_private'> </td>";
+        //echo "<td> <input type='text' name='type' value='$type'> </td>";
+        echo "<td> <select name='type'>";
+        echo "<option value='normal'>Normal</option>";
+        echo "<option value='repeat'>Repeat</option>";
+        echo "<option value='asap'>ASAP</option>";
+        echo "</select> </td>";
+        if($task->type == "asap") {
+            echo "<td> <input type='datetime-local' name='duration' value='$task->duration'> </td>";
+        }
+        if($task->type == "normal" || $task->type == "repeat") {
+            echo "<td> <input type='date' name='start_date' value='$task->start_date'> </td>";
+            echo "<td> <input type='time' name='start_time' value='$task->start_time'> </td>";
+        }
+        if($task->type == "normal") {
+            echo "<td> <input type='date' name='finish_date' value='$task->finish_date'> </td>";
+            echo "<td> <input type='time' name='finish_time' value='$task->finish_time'> </td>";
+        }
+        if($task->type == "repeat") {
+            echo "<td> <input type='datetime-local' name='repeat_interval' value='$task->repeat_interval'> </td> </tr>";
+        }
     }
 
     echo "</table>";
