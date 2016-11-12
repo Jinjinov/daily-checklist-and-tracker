@@ -32,11 +32,11 @@ function get_submitted_day()
 {
     $day = new Day();
     
-    $day->id = filter_input(INPUT_POST, 'id');
-    $day->task_id = filter_input(INPUT_POST, 'task_id');
-    $day->completed = filter_has_var(INPUT_POST, 'completed');
-    $day->time_spent = filter_input(INPUT_POST, 'time_spent');
-    $day->step_done = filter_input(INPUT_POST, 'step_done');
+    $day->id = filter_input(INPUT_POST, 'var_day_id');
+    $day->task_id = filter_input(INPUT_POST, 'var_task_id');
+    $day->completed = filter_has_var(INPUT_POST, 'var_completed');
+    $day->time_spent = filter_input(INPUT_POST, 'var_time_spent');
+    $day->step_done = filter_input(INPUT_POST, 'var_step_done');
     
     return $day;
 }
@@ -44,20 +44,20 @@ function get_submitted_day()
 function days_buttons($selectedTaskId,$selectedDayId)
 {
     if($selectedTaskId > 0){
-        echo '<input type="submit" name="input_day" value="Add new day"/>';
+        echo '<input type="submit" name="state_input_day" value="Add new day"/>';
     }
     
     if($selectedDayId != null){
-        echo '<input type="submit" name="sql_delete_day" value="Delete selected day"/>';
-        echo '<input type="submit" name="update_day" value="Update selected day"/>';
+        echo '<input type="submit" name="action_sql_delete_day" value="Delete selected day"/>';
+        echo '<input type="submit" name="state_update_day" value="Update selected day"/>';
     }
     
-    if(filter_has_var(INPUT_POST, 'input_day')){
-        echo '<input type="submit" name="sql_insert_day" value="Submit day"/>';
+    if($_SESSION['state'] == 'state_input_day'){
+        echo '<input type="submit" name="action_sql_insert_day" value="Submit day"/>';
     }
 
-    if(filter_has_var(INPUT_POST, 'update_day')){
-        echo '<input type="submit" name="sql_update_day" value="Save changes"/>';
+    if($_SESSION['state'] == 'state_update_day'){
+        echo '<input type="submit" name="action_sql_update_day" value="Save changes"/>';
         echo '<br>';
         echo '<br>';
     }
@@ -87,12 +87,12 @@ function days_table($conn,$selectedUserId,$selectedDayId,Day $day)
             if($selectedDayId==$rowDay->id){
                 $style = "style='background:red;'";
             }
-            if($selectedDayId==$rowDay->id && filter_has_var(INPUT_POST, 'update_day')){
+            if($selectedDayId==$rowDay->id && $_SESSION['state'] == 'state_update_day'){
                 echo "<tr> <td>$rowDay->id</td>";
-                echo "<td> <input type='text' name='task_id' value='$rowDay->task_id'> </td>";
-                echo "<td> <input type='checkbox' name='completed' value='$rowDay->completed'> </td>";
-                echo "<td> <input type='time' name='time_spent' value='$rowDay->time_spent'> </td>";
-                echo "<td> <input type='text' name='step_done' value='$rowDay->step_done'> </td> </tr>";
+                echo "<td> <input type='text' name='var_task_id' value='$rowDay->task_id'> </td>";
+                echo "<td> <input type='checkbox' name='var_completed' value='$rowDay->completed'> </td>";
+                echo "<td> <input type='time' name='var_time_spent' value='$rowDay->time_spent'> </td>";
+                echo "<td> <input type='text' name='var_step_done' value='$rowDay->step_done'> </td> </tr>";
             } else {
                 echo "<tr onclick='RowClick(\"selectedDayId\", this);' $style> <td>$rowDay->id</td>";
                 echo "<td> $rowDay->task_id </td>";
@@ -103,13 +103,13 @@ function days_table($conn,$selectedUserId,$selectedDayId,Day $day)
         }
     }
 
-    if(filter_has_var(INPUT_POST, 'input_day'))
+    if($_SESSION['state'] == 'state_input_day')
     {
         echo "<tr> <td>$day->id</td>";
-        echo "<td> <input type='text' name='task_id' value='$day->task_id'> </td>";
-        echo "<td> <input type='checkbox' name='completed' value='$day->completed'> </td>";
-        echo "<td> <input type='time' name='time_spent' value='$day->time_spent'> </td>";
-        echo "<td> <input type='text' name='step_done' value='$day->step_done'> </td> </tr>";
+        echo "<td> <input type='text' name='var_task_id' value='$day->task_id'> </td>";
+        echo "<td> <input type='checkbox' name='var_completed' value='$day->completed'> </td>";
+        echo "<td> <input type='time' name='var_time_spent' value='$day->time_spent'> </td>";
+        echo "<td> <input type='text' name='var_step_done' value='$day->step_done'> </td> </tr>";
     }
 
     echo "</table>";
@@ -136,7 +136,7 @@ function task_days($conn,$selectedTaskId)
 
 function insert_day($conn,$selectedUserId,$selectedTaskId,&$selectedDayId,Day $day)
 {
-    if(filter_has_var(INPUT_POST, 'sql_insert_day'))
+    if(filter_has_var(INPUT_POST, 'action_sql_insert_day'))
     {
         $statement = $conn->prepare("INSERT INTO days (task_id, user_id, completed, time_spent, step_done) VALUES (?, ?, ?, ?, ?)");
         $statement->bind_param("iiiss", $selectedTaskId, $selectedUserId, $day->completed, $day->time_spent, $day->step_done);
@@ -154,7 +154,7 @@ function insert_day($conn,$selectedUserId,$selectedTaskId,&$selectedDayId,Day $d
 
 function update_day($conn,$selectedDayId,Day $day)
 {
-    if(filter_has_var(INPUT_POST, 'sql_update_day'))
+    if(filter_has_var(INPUT_POST, 'action_sql_update_day'))
     {
         $statement = $conn->prepare("UPDATE days SET task_id=?, completed=?, time_spent=?, step_done=? WHERE id=?");
         $statement->bind_param("iissi", $day->task_id, $day->completed, $day->time_spent, $day->step_done, $selectedDayId);
@@ -171,7 +171,7 @@ function update_day($conn,$selectedDayId,Day $day)
 
 function delete_day($conn,$selectedDayId)
 {
-    if(filter_has_var(INPUT_POST, 'sql_delete_day'))
+    if(filter_has_var(INPUT_POST, 'action_sql_delete_day'))
     {
         $statement = $conn->prepare("DELETE FROM days WHERE id=?");
         $statement->bind_param("i", $selectedDayId);

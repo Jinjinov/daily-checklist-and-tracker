@@ -31,30 +31,30 @@ function get_submitted_user()
 {
     $user = new User();
     
-    $user->id = filter_input(INPUT_POST, 'id');
-    $user->username = filter_input(INPUT_POST, 'username');
-    $user->password = filter_input(INPUT_POST, 'password');
-    $user->display_name = filter_input(INPUT_POST, 'display_name');
-    $user->display_image = filter_input(INPUT_POST, 'display_image');
+    $user->id = filter_input(INPUT_POST, 'var_user_id');
+    $user->username = filter_input(INPUT_POST, 'var_username');
+    $user->password = filter_input(INPUT_POST, 'var_password');
+    $user->display_name = filter_input(INPUT_POST, 'var_display_name');
+    $user->display_image = filter_input(INPUT_POST, 'var_display_image');
     
     return $user;
 }
 
 function users_buttons($selectedUserId)
 {
-    echo '<input type="submit" name="input_user" value="Add new user"/>';
+    echo '<input type="submit" name="state_input_user" value="Add new user"/>';
 
     if($selectedUserId != null){
-        echo '<input type="submit" name="sql_delete_user" value="Delete selected user"/>';
-        echo '<input type="submit" name="update_user" value="Update selected user"/>';
+        echo '<input type="submit" name="action_sql_delete_user" value="Delete selected user"/>';
+        echo '<input type="submit" name="state_update_user" value="Update selected user"/>';
     }
     
-    if(filter_has_var(INPUT_POST, 'input_user')){
-        echo '<input type="submit" name="sql_insert_user" value="Submit user"/>';
+    if($_SESSION['state'] == 'state_input_user'){
+        echo '<input type="submit" name="action_sql_insert_user" value="Submit user"/>';
     }
 
-    if(filter_has_var(INPUT_POST, 'update_user')){
-        echo '<input type="submit" name="sql_update_user" value="Save changes"/>';
+    if($_SESSION['state'] == 'state_update_user'){
+        echo '<input type="submit" name="action_sql_update_user" value="Save changes"/>';
         echo '<br>';
         echo '<br>';
     }
@@ -81,12 +81,12 @@ function users_table($conn,$selectedUserId,User $user)
             if($selectedUserId==$rowUser->id){
                 $style = "style='background:red;'";
             }
-            if($selectedUserId==$rowUser->id && filter_has_var(INPUT_POST, 'update_user')){
+            if($selectedUserId==$rowUser->id && $_SESSION['state'] == 'state_update_user'){
                 echo "<tr> <td>$rowUser->id</td>";
-                echo "<td> <input type='text' name='username' value='$rowUser->username'> </td>";
-                echo "<td> <input type='text' name='password' value='$rowUser->password'> </td>";
-                echo "<td> <input type='text' name='display_name' value='$rowUser->display_name'> </td>";
-                echo "<td> <input type='text' name='display_image' value='$rowUser->display_image'> </td> </tr>";
+                echo "<td> <input type='text' name='var_username' value='$rowUser->username'> </td>";
+                echo "<td> <input type='text' name='var_password' value='$rowUser->password'> </td>";
+                echo "<td> <input type='text' name='var_display_name' value='$rowUser->display_name'> </td>";
+                echo "<td> <input type='text' name='var_display_image' value='$rowUser->display_image'> </td> </tr>";
             } else {
                 echo "<tr onclick='RowClick(\"selectedUserId\", this);' $style> <td>$rowUser->id</td>";
                 echo "<td> $rowUser->username </td>";
@@ -97,13 +97,13 @@ function users_table($conn,$selectedUserId,User $user)
         }
     }
 
-    if(filter_has_var(INPUT_POST, 'input_user'))
+    if($_SESSION['state'] == 'state_input_user')
     {
         echo "<tr> <td>$user->id</td>";
-        echo "<td> <input type='text' name='username' value='$user->username'> </td>";
-        echo "<td> <input type='text' name='password' value='$user->password'> </td>";
-        echo "<td> <input type='text' name='display_name' value='$user->display_name'> </td>";
-        echo "<td> <input type='text' name='display_image' value='$user->display_image'> </td> </tr>";
+        echo "<td> <input type='text' name='var_username' value='$user->username'> </td>";
+        echo "<td> <input type='text' name='var_password' value='$user->password'> </td>";
+        echo "<td> <input type='text' name='var_display_name' value='$user->display_name'> </td>";
+        echo "<td> <input type='text' name='var_display_image' value='$user->display_image'> </td> </tr>";
     }
 
     echo '</table>';
@@ -131,7 +131,7 @@ function get_selected_user($conn,$selectedUserId)
 
 function insert_user($conn,&$selectedUserId,User $user)
 {
-    if(filter_has_var(INPUT_POST, 'sql_insert_user'))
+    if(filter_has_var(INPUT_POST, 'action_sql_insert_user'))
     {
         $password = password_hash($user->password, PASSWORD_DEFAULT);
         
@@ -151,7 +151,7 @@ function insert_user($conn,&$selectedUserId,User $user)
 
 function update_user($conn,$selectedUserId,User $user)
 {
-    if(filter_has_var(INPUT_POST, 'sql_update_user'))
+    if(filter_has_var(INPUT_POST, 'action_sql_update_user'))
     {
         $password = password_hash($user->password, PASSWORD_DEFAULT);
         
@@ -170,7 +170,7 @@ function update_user($conn,$selectedUserId,User $user)
 
 function delete_user($conn,$selectedUserId)
 {
-    if(filter_has_var(INPUT_POST, 'sql_delete_user'))
+    if(filter_has_var(INPUT_POST, 'action_sql_delete_user'))
     {
         // TODO: delete all user tasks
         
