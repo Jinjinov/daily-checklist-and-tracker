@@ -52,11 +52,11 @@ function days_buttons($selectedTaskId,$selectedDayId)
         echo '<input type="submit" name="state_update_day" value="Update selected day"/>';
     }
     
-    if($_SESSION['state'] == 'state_input_day'){
+    if($_SESSION['state'] === 'state_input_day'){
         echo '<input type="submit" name="action_sql_insert_day" value="Submit day"/>';
     }
 
-    if($_SESSION['state'] == 'state_update_day'){
+    if($_SESSION['state'] === 'state_update_day'){
         echo '<input type="submit" name="action_sql_update_day" value="Save changes"/>';
         echo '<br>';
         echo '<br>';
@@ -84,22 +84,21 @@ function days_table($conn,$selectedUserId,$selectedDayId,Day $day)
             $rowDay->step_done = $row["step_done"];
 
             $style = "";
-            if($selectedDayId==$rowDay->id){
+            if($selectedDayId == $rowDay->id){
                 $style = "style='background:red;'";
             }
-            if($selectedDayId==$rowDay->id && $_SESSION['state'] == 'state_update_day'){
+            if($selectedDayId == $rowDay->id && $_SESSION['state'] === 'state_update_day'){
                 
                 $currentDay = null;
                 
-                if(filter_has_var(INPUT_POST, 'state_update_day')){
+                if($day->id === null) {
                     $currentDay = $rowDay;
                 }
                 else {
-                    $day->id = $rowDay->id;
                     $currentDay = $day;
                 }
                 
-                echo "<tr> <td>$currentDay->id</td>";
+                echo "<tr> <td><input type='hidden' name='var_day_id' value='$currentDay->id'>$currentDay->id</td>";
                 echo "<td> <input type='text' name='var_task_id' value='$currentDay->task_id'> </td>";
                 echo "<td> <input type='checkbox' name='var_completed' value='$currentDay->completed'> </td>";
                 echo "<td> <input type='time' name='var_time_spent' value='$currentDay->time_spent'> </td>";
@@ -114,7 +113,7 @@ function days_table($conn,$selectedUserId,$selectedDayId,Day $day)
         }
     }
 
-    if($_SESSION['state'] == 'state_input_day')
+    if($_SESSION['state'] === 'state_input_day')
     {
         echo "<tr> <td>$day->id</td>";
         echo "<td> <input type='text' name='var_task_id' value='$day->task_id'> </td>";

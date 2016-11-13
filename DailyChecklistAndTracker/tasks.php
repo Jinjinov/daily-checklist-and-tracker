@@ -81,11 +81,11 @@ function tasks_buttons($selectedTaskId)
         echo '<input type="submit" name="state_update_task" value="Update selected task"/>';
     }
     
-    if($_SESSION['state'] == 'state_input_task'){
+    if($_SESSION['state'] === 'state_input_task'){
         echo '<input type="submit" name="action_sql_insert_task" value="Submit new task"/>';
     }
 
-    if($_SESSION['state'] == 'state_update_task'){
+    if($_SESSION['state'] === 'state_update_task'){
         echo '<input type="submit" name="action_sql_update_task" value="Save changes"/>';
         echo '<br>';
         echo '<br>';
@@ -128,22 +128,21 @@ function tasks_table($conn,$selectedUserId,$selectedTaskId,Task $task)
             $rowTask->repeat_interval = $row["repeat_interval"];
 
             $style = "";
-            if($selectedTaskId==$rowTask->id){
+            if($selectedTaskId == $rowTask->id){
                 $style = "style='background:red;'";
             }
-            if($selectedTaskId==$rowTask->id && $_SESSION['state'] == 'state_update_task'){
+            if($selectedTaskId == $rowTask->id && $_SESSION['state'] === 'state_update_task'){
                 
                 $currentTask = null;
                 
-                if(filter_has_var(INPUT_POST, 'state_update_task')){
+                if($task->id === null) {
                     $currentTask = $rowTask;
                 }
                 else {
-                    $task->id = $rowTask->id;
                     $currentTask = $task;
                 }
             
-                echo "<tr> <td>$currentTask->id</td>";
+                echo "<tr> <td><input type='hidden' name='var_task_id' value='$currentTask->id'>$currentTask->id</td>";
                 echo "<td> <input type='text' name='var_user_id' value='$currentTask->user_id'> </td>";
                 echo "<td> <input type='text' name='var_task' value='$currentTask->task'> </td>";
                 echo "<td> <input type='text' name='var_next_step' value='$currentTask->next_step'> </td>";
@@ -151,22 +150,22 @@ function tasks_table($conn,$selectedUserId,$selectedTaskId,Task $task)
                 echo "<td> <input type='checkbox' name='var_is_private' value='$currentTask->is_private'> </td>";
                 //echo "<td> <input type='text' name='var_type' value='$type'> </td>";
                 echo "<td> <select name='var_type' onchange='this.form.submit();'>";
-                echo "<option value='normal'".($currentTask->type == 'normal' ? 'selected' : '').">Normal</option>";
-                echo "<option value='repeat'".($currentTask->type == 'repeat' ? 'selected' : '').">Repeat</option>";
-                echo "<option value='asap'".($currentTask->type == 'asap' ? 'selected' : '').">ASAP</option>";
+                echo "<option value='normal'".($currentTask->type === 'normal' ? 'selected' : '').">Normal</option>";
+                echo "<option value='repeat'".($currentTask->type === 'repeat' ? 'selected' : '').">Repeat</option>";
+                echo "<option value='asap'".($currentTask->type === 'asap' ? 'selected' : '').">ASAP</option>";
                 echo "</select> </td>";
-                if($currentTask->type == "asap") {
+                if($currentTask->type === "asap") {
                     echo "<td> <input type='datetime-local' name='var_duration' value='$currentTask->duration'> </td>";
                 }
-                if($currentTask->type == "normal" || $currentTask->type == "repeat") {
+                if($currentTask->type === "normal" || $currentTask->type === "repeat") {
                     echo "<td> <input type='date' name='var_start_date' value='$currentTask->start_date'> </td>";
                     echo "<td> <input type='time' name='var_start_time' value='$currentTask->start_time'> </td>";
                 }
-                if($currentTask->type == "normal") {
+                if($currentTask->type === "normal") {
                     echo "<td> <input type='date' name='var_finish_date' value='$currentTask->finish_date'> </td>";
                     echo "<td> <input type='time' name='var_finish_time' value='$currentTask->finish_time'> </td>";
                 }
-                if($currentTask->type == "repeat") {
+                if($currentTask->type === "repeat") {
                     echo "<td> <input type='datetime-local' name='var_repeat_interval' value='$currentTask->repeat_interval'> </td> </tr>";
                 }
             } else {
@@ -177,25 +176,25 @@ function tasks_table($conn,$selectedUserId,$selectedTaskId,Task $task)
                 echo "<td> $rowTask->percent_completed </td>";
                 echo "<td> $rowTask->is_private </td>";
                 echo "<td> $rowTask->type </td>";
-                if($rowTask->type == "asap") {
+                if($rowTask->type === "asap") {
                     echo "<td> $rowTask->duration </td>";
                 }
-                if($rowTask->type == "normal" || $rowTask->type == "repeat") {
+                if($rowTask->type === "normal" || $rowTask->type === "repeat") {
                     echo "<td> $rowTask->start_date </td>";
                     echo "<td> $rowTask->start_time </td>";
                 }
-                if($rowTask->type == "normal") {
+                if($rowTask->type === "normal") {
                     echo "<td> $rowTask->finish_date </td>";
                     echo "<td> $rowTask->finish_time </td>";
                 }
-                if($rowTask->type == "repeat") {
+                if($rowTask->type === "repeat") {
                     echo "<td> $rowTask->repeat_interval </td> </tr>";
                 }
             }
         }
     }
     
-    if($_SESSION['state'] == 'state_input_task')
+    if($_SESSION['state'] === 'state_input_task')
     {
         echo "<tr> <td>$task->id</td>";
         echo "<td> <input type='text' name='var_user_id' value='$task->user_id'> </td>";
@@ -205,22 +204,22 @@ function tasks_table($conn,$selectedUserId,$selectedTaskId,Task $task)
         echo "<td> <input type='checkbox' name='var_is_private' value='$task->is_private'> </td>";
         //echo "<td> <input type='text' name='var_type' value='$type'> </td>";
         echo "<td> <select name='var_type' onchange='this.form.submit();'>";
-        echo "<option value='normal'".($task->type == 'normal' ? 'selected' : '').">Normal</option>";
-        echo "<option value='repeat'".($task->type == 'repeat' ? 'selected' : '').">Repeat</option>";
-        echo "<option value='asap'".($task->type == 'asap' ? 'selected' : '').">ASAP</option>";
+        echo "<option value='normal'".($task->type === 'normal' ? 'selected' : '').">Normal</option>";
+        echo "<option value='repeat'".($task->type === 'repeat' ? 'selected' : '').">Repeat</option>";
+        echo "<option value='asap'".($task->type === 'asap' ? 'selected' : '').">ASAP</option>";
         echo "</select> </td>";
-        if($task->type == "asap") {
+        if($task->type === "asap") {
             echo "<td> <input type='datetime-local' name='var_duration' value='$task->duration'> </td>";
         }
-        if($task->type == "normal" || $task->type == "repeat") {
+        if($task->type === "normal" || $task->type === "repeat") {
             echo "<td> <input type='date' name='var_start_date' value='$task->start_date'> </td>";
             echo "<td> <input type='time' name='var_start_time' value='$task->start_time'> </td>";
         }
-        if($task->type == "normal") {
+        if($task->type === "normal") {
             echo "<td> <input type='date' name='var_finish_date' value='$task->finish_date'> </td>";
             echo "<td> <input type='time' name='var_finish_time' value='$task->finish_time'> </td>";
         }
-        if($task->type == "repeat") {
+        if($task->type === "repeat") {
             echo "<td> <input type='datetime-local' name='var_repeat_interval' value='$task->repeat_interval'> </td> </tr>";
         }
     }

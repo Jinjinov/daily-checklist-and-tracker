@@ -70,7 +70,7 @@ and open the template in the editor.
             }
             
             $postRedirectGet = filter_input(INPUT_POST, 'post_redirect_get');
-            if($postRedirectGet == '1') {
+            if($postRedirectGet === '1') {
                 postRedirect(0);
             }
             
@@ -161,6 +161,7 @@ and open the template in the editor.
             if(filter_has_var(INPUT_POST, 'action_clear_session'))
             {
                 $_SESSION = array();
+                session_destroy();
             }
 
             ///////////////////////////////////////////////////////////////////////
@@ -201,25 +202,29 @@ and open the template in the editor.
             // render page
             ///////////////////////////////////////////////////////////////////////
             
-            $admin = filter_input(INPUT_POST, 'is_admin'); // unchecked checkbox is not sent in POST on form submit
+            $admin = false;
+            
+            if(filter_has_var(INPUT_POST, 'is_admin')) {
+                $admin = filter_input(INPUT_POST, 'is_admin') === '1';
+                $_SESSION['is_admin'] = $admin;
+                //postRedirect(10); - if we do this, we must save input values to session
+            }
+            else if(isset($_SESSION['is_admin'])) {
+                $admin = $_SESSION['is_admin'];
+            }
+            
+            echo "<br>";
+            echo "<input type='hidden' value='0' name='is_admin'>"; // unchecked checkbox is not sent in POST on form submit
+            echo "<label><input type='checkbox' name='is_admin' value='1' onchange='this.form.submit();' ".($admin ? "checked" : "").">Administrator</label>";
             
             if($admin)
             {
-                echo "<br>";
-                echo "<label><input type='checkbox' name='is_admin' value='Administrator' onchange='this.form.submit();' checked>Administrator</label>";
-
                 echo " <input type='submit' name='action_sql_drop_table' value='Delete tables'/>";
                 echo " <input type='submit' name='action_clear_session' value='Clear session'/>";
-                echo "<br>";
-                echo "<br>";
             }
-            else
-            {
-                echo "<br>";
-                echo "<label><input type='checkbox' name='is_admin' value='Administrator' onchange='this.form.submit();'>Administrator</label>";
-                echo "<br>";
-                echo "<br>";
-            }
+            
+            echo "<br>";
+            echo "<br>";
             
             if($admin)
             {
@@ -244,7 +249,7 @@ and open the template in the editor.
 
                 if(!$admin)
                 {
-                    if($_SESSION['state'] == 'state_create_new_account')
+                    if($_SESSION['state'] === 'state_create_new_account')
                     {
                         echo "<label>Username: <input type='text' name='var_username'></label><br>";
                         echo "<label>Password: <input type='text' name='var_password'></label><br>";

@@ -49,11 +49,11 @@ function users_buttons($selectedUserId)
         echo '<input type="submit" name="state_update_user" value="Update selected user"/>';
     }
     
-    if($_SESSION['state'] == 'state_input_user'){
+    if($_SESSION['state'] === 'state_input_user'){
         echo '<input type="submit" name="action_sql_insert_user" value="Submit user"/>';
     }
 
-    if($_SESSION['state'] == 'state_update_user'){
+    if($_SESSION['state'] === 'state_update_user'){
         echo '<input type="submit" name="action_sql_update_user" value="Save changes"/>';
         echo '<br>';
         echo '<br>';
@@ -78,22 +78,21 @@ function users_table($conn,$selectedUserId,User $user)
             $rowUser->display_image = $row["display_image"];
 
             $style = "";
-            if($selectedUserId==$rowUser->id){
+            if($selectedUserId == $rowUser->id){
                 $style = "style='background:red;'";
             }
-            if($selectedUserId==$rowUser->id && $_SESSION['state'] == 'state_update_user'){
+            if($selectedUserId == $rowUser->id && $_SESSION['state'] === 'state_update_user'){
                 
                 $currentUser = null;
                 
-                if(filter_has_var(INPUT_POST, 'state_update_user')){
+                if($user->id === null) {
                     $currentUser = $rowUser;
                 }
                 else {
-                    $user->id = $rowUser->id;
                     $currentUser = $user;
                 }
                 
-                echo "<tr> <td>$currentUser->id</td>";
+                echo "<tr> <td><input type='hidden' name='var_user_id' value='$currentUser->id'>$currentUser->id</td>";
                 echo "<td> <input type='text' name='var_username' value='$currentUser->username'> </td>";
                 echo "<td> <input type='text' name='var_password' value='$currentUser->password'> </td>";
                 echo "<td> <input type='text' name='var_display_name' value='$currentUser->display_name'> </td>";
