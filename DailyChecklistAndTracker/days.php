@@ -88,13 +88,24 @@ function days_table($conn,$selectedUserId,$selectedDayId,Day $day)
                 $style = "style='background:red;'";
             }
             if($selectedDayId==$rowDay->id && $_SESSION['state'] == 'state_update_day'){
-                echo "<tr> <td>$rowDay->id</td>";
-                echo "<td> <input type='text' name='var_task_id' value='$rowDay->task_id'> </td>";
-                echo "<td> <input type='checkbox' name='var_completed' value='$rowDay->completed'> </td>";
-                echo "<td> <input type='time' name='var_time_spent' value='$rowDay->time_spent'> </td>";
-                echo "<td> <input type='text' name='var_step_done' value='$rowDay->step_done'> </td> </tr>";
+                
+                $currentDay = null;
+                
+                if(filter_has_var(INPUT_POST, 'state_update_day')){
+                    $currentDay = $rowDay;
+                }
+                else {
+                    $day->id = $rowDay->id;
+                    $currentDay = $day;
+                }
+                
+                echo "<tr> <td>$currentDay->id</td>";
+                echo "<td> <input type='text' name='var_task_id' value='$currentDay->task_id'> </td>";
+                echo "<td> <input type='checkbox' name='var_completed' value='$currentDay->completed'> </td>";
+                echo "<td> <input type='time' name='var_time_spent' value='$currentDay->time_spent'> </td>";
+                echo "<td> <input type='text' name='var_step_done' value='$currentDay->step_done'> </td> </tr>";
             } else {
-                echo "<tr onclick='RowClick(\"selectedDayId\", this);' $style> <td>$rowDay->id</td>";
+                echo "<tr onclick='RowClick(\"selectedDayId\", $rowDay->id);' $style> <td>$rowDay->id</td>";
                 echo "<td> $rowDay->task_id </td>";
                 echo "<td> $rowDay->completed </td>";
                 echo "<td> $rowDay->time_spent </td>";

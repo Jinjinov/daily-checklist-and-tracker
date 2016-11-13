@@ -14,12 +14,18 @@ and open the template in the editor.
     <body>
         <form action="" method="post" id="theForm">
             <?php
+
+            ///////////////////////////////////////////////////////////////////////
+            // post - redirect - get
+            ///////////////////////////////////////////////////////////////////////
             
             function postRedirect($code)
             {
-                $_SESSION['redirect_in_progress'] = $code;
+                //$_SESSION['DEBUG_redirect_in_progress'] = $code;
                 
-                $_SESSION['state'] = '0';
+                if($code < 10) {
+                    $_SESSION['state'] = '0';
+                }
                 
                 // save variables to session, because we executed an action
                 
@@ -36,7 +42,7 @@ and open the template in the editor.
                 header("Location: " . filter_input(INPUT_SERVER, 'REQUEST_URI'));
                 exit();
             }
-            
+
             include 'users.php';
             include 'tasks.php';
             include 'days.php';
@@ -45,45 +51,65 @@ and open the template in the editor.
             { 
                 session_start();
             }
-            if(isset($_SESSION['redirect_in_progress']))
-            {
-                $code = $_SESSION['redirect_in_progress'];
-                
-                echo "<script type='text/javascript'>alert('$code submitted successfully!')</script>";
-                
-                unset($_SESSION['redirect_in_progress']);
-                
-                $selectedUserId = $_SESSION['selectedUserId'];
-                $selectedTaskId = $_SESSION['selectedTaskId'];
-                $selectedDayId = $_SESSION['selectedDayId'];
-            }
-            else
+            
+            $selectedUserId = null;
+            $selectedTaskId = null;
+            $selectedDayId = null;
+            
+            if(filter_has_var(INPUT_POST, 'var_selectedUserId') && filter_has_var(INPUT_POST, 'var_selectedTaskId') && filter_has_var(INPUT_POST, 'var_selectedDayId'))
             {
                 $selectedUserId = filter_input(INPUT_POST, 'var_selectedUserId');
                 $selectedTaskId = filter_input(INPUT_POST, 'var_selectedTaskId');
                 $selectedDayId = filter_input(INPUT_POST, 'var_selectedDayId');
             }
+            else if(isset($_SESSION['selectedUserId']) && isset($_SESSION['selectedTaskId']) && isset($_SESSION['selectedDayId']))
+            {
+                $selectedUserId = $_SESSION['selectedUserId'];
+                $selectedTaskId = $_SESSION['selectedTaskId'];
+                $selectedDayId = $_SESSION['selectedDayId'];
+            }
+            
+            $postRedirectGet = filter_input(INPUT_POST, 'post_redirect_get');
+            if($postRedirectGet == '1') {
+                postRedirect(0);
+            }
+            
+            /*
+            if(isset($_SESSION['DEBUG_redirect_in_progress']))
+            {
+                $code = $_SESSION['DEBUG_redirect_in_progress'];
+                echo "<script type='text/javascript'>alert('$code submitted successfully!')</script>";
+                unset($_SESSION['DEBUG_redirect_in_progress']);
+            }
+            */
             
             if(filter_has_var(INPUT_POST, 'state_create_new_account')){
                 $_SESSION['state'] = 'state_create_new_account';
+                postRedirect(10);
             }
             if(filter_has_var(INPUT_POST, 'state_input_user')){
                 $_SESSION['state'] = 'state_input_user';
+                postRedirect(11);
             }
             if(filter_has_var(INPUT_POST, 'state_update_user')){
                 $_SESSION['state'] = 'state_update_user';
+                postRedirect(12);
             }
             if(filter_has_var(INPUT_POST, 'state_input_task')){
                 $_SESSION['state'] = 'state_input_task';
+                postRedirect(13);
             }
             if(filter_has_var(INPUT_POST, 'state_update_task')){
                 $_SESSION['state'] = 'state_update_task';
+                postRedirect(14);
             }
             if(filter_has_var(INPUT_POST, 'state_input_day')){
                 $_SESSION['state'] = 'state_input_day';
+                postRedirect(15);
             }
             if(filter_has_var(INPUT_POST, 'state_update_day')){
                 $_SESSION['state'] = 'state_update_day';
+                postRedirect(16);
             }
             if(!isset($_SESSION['state'])) 
             { 
@@ -170,12 +196,12 @@ and open the template in the editor.
                 $user = get_submitted_user();
                 $selectedUserId = insert_user($conn,$selectedUserId,$user); // action ends with postRedirect(1);
             }
-            
+
             ///////////////////////////////////////////////////////////////////////
             // render page
             ///////////////////////////////////////////////////////////////////////
             
-            $admin = filter_input(INPUT_POST, 'is_admin');
+            $admin = filter_input(INPUT_POST, 'is_admin'); // unchecked checkbox is not sent in POST on form submit
             
             if($admin)
             {
@@ -194,10 +220,6 @@ and open the template in the editor.
                 echo "<br>";
                 echo "<br>";
             }
-            
-            ///////////////////////////////////////////////////////////////////////
-            // users
-            ///////////////////////////////////////////////////////////////////////
             
             if($admin)
             {
@@ -301,18 +323,22 @@ and open the template in the editor.
             echo "<input id='selectedUserId' type='hidden' name='var_selectedUserId' value='$selectedUserId'>";
             echo "<input id='selectedTaskId' type='hidden' name='var_selectedTaskId' value='$selectedTaskId'>";
             echo "<input id='selectedDayId' type='hidden' name='var_selectedDayId' value='$selectedDayId'>";
+            
+            echo "<input id='postRedirectGet' type='hidden' name='post_redirect_get' value='0'>";
 
             ?>
         </form>
             
         <script>
-        function RowClick(id, row)
+        function RowClick(hidden_id, sql_id)
         {
-            if(Number(document.getElementById(id).value) === row.rowIndex) {
-                document.getElementById(id).value = '';
+            if(Number(document.getElementById(hidden_id).value) === sql_id) {
+                document.getElementById(hidden_id).value = '';
             } else {
-                document.getElementById(id).value = row.rowIndex;
+                document.getElementById(hidden_id).value = sql_id;
             }
+            
+            document.getElementById("postRedirectGet").value = '1';
             
             document.getElementById("theForm").submit();
         }

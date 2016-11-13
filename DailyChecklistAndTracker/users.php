@@ -82,13 +82,24 @@ function users_table($conn,$selectedUserId,User $user)
                 $style = "style='background:red;'";
             }
             if($selectedUserId==$rowUser->id && $_SESSION['state'] == 'state_update_user'){
-                echo "<tr> <td>$rowUser->id</td>";
-                echo "<td> <input type='text' name='var_username' value='$rowUser->username'> </td>";
-                echo "<td> <input type='text' name='var_password' value='$rowUser->password'> </td>";
-                echo "<td> <input type='text' name='var_display_name' value='$rowUser->display_name'> </td>";
-                echo "<td> <input type='text' name='var_display_image' value='$rowUser->display_image'> </td> </tr>";
+                
+                $currentUser = null;
+                
+                if(filter_has_var(INPUT_POST, 'state_update_user')){
+                    $currentUser = $rowUser;
+                }
+                else {
+                    $user->id = $rowUser->id;
+                    $currentUser = $user;
+                }
+                
+                echo "<tr> <td>$currentUser->id</td>";
+                echo "<td> <input type='text' name='var_username' value='$currentUser->username'> </td>";
+                echo "<td> <input type='text' name='var_password' value='$currentUser->password'> </td>";
+                echo "<td> <input type='text' name='var_display_name' value='$currentUser->display_name'> </td>";
+                echo "<td> <input type='text' name='var_display_image' value='$currentUser->display_image'> </td> </tr>";
             } else {
-                echo "<tr onclick='RowClick(\"selectedUserId\", this);' $style> <td>$rowUser->id</td>";
+                echo "<tr onclick='RowClick(\"selectedUserId\", $rowUser->id);' $style> <td>$rowUser->id</td>";
                 echo "<td> $rowUser->username </td>";
                 echo "<td> $rowUser->password </td>";
                 echo "<td> $rowUser->display_name </td>";
