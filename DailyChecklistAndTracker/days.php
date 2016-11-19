@@ -70,13 +70,24 @@ function days_table($conn,$selectedUserId,$selectedDayId,Day $day)
     $statement->execute();
     $result = $statement->get_result();
     
+    //Copy result into a associative array
+    $resultArray = $result->fetch_all(MYSQLI_ASSOC);
+
+    //Copy result into a numeric array
+    //$resultArray = $result->fetch_all(MYSQLI_NUM);
+
+    //Copy result into both a associative and numeric array
+    //$resultArray = $result->fetch_all(MYSQLI_BOTH);
+
     echo "<table>";
     echo "<tr> <th>ID</th> <th>Task ID</th> <th>Completed</th> <th>Time spent</th> <th>Step done</th> </tr>";
 
-    if ($result->num_rows > 0) {
+    //if ($result->num_rows > 0) {
+    if (count($resultArray) > 0) {    
         $rowDay = new Day();
 
-        while($row = $result->fetch_assoc()) {
+        //while($row = $result->fetch_assoc()) {
+        foreach ($resultArray as $row) {    
             $rowDay->id = $row["id"];
             $rowDay->task_id = $row["task_id"];
             $rowDay->completed = $row["completed"];
