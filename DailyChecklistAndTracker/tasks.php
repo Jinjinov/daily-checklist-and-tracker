@@ -101,7 +101,7 @@ function tasks_table($conn,$selectedUserId,$selectedTaskId,Task $task)
     
     echo "<table>";
     echo "<tr>";
-    echo "<th>ID</th> <th>User ID</th> <th>Task</th> <th>Next step</th> <th>Completed %</th> <th>is private</th> <th>Type</th> ";
+    echo "<th>ID</th> <th>User ID</th> <th>Task</th> <th>Next step</th> <th>Completed %</th> <th>is private</th> <th>Type</th> <th>Time</th>";
     //echo "<th>Duration</th> <th>Start</th> <th>Time</th> <th>Finish</th> <th>Time</th> <th>Repeat</th>";
     echo "</tr>";
 
@@ -154,20 +154,23 @@ function tasks_table($conn,$selectedUserId,$selectedTaskId,Task $task)
                 echo "<option value='repeat'".($currentTask->type === 'repeat' ? 'selected' : '').">Repeat</option>";
                 echo "<option value='asap'".($currentTask->type === 'asap' ? 'selected' : '').">ASAP</option>";
                 echo "</select> </td>";
+                
+                echo "<td>";
                 if($currentTask->type === "asap") {
-                    echo "<td> <input type='datetime-local' name='var_duration' value='$currentTask->duration'> </td>";
+                    echo " duration: <input type='datetime-local' name='var_duration' value='$currentTask->duration'> ";
                 }
                 if($currentTask->type === "normal" || $currentTask->type === "repeat") {
-                    echo "<td> <input type='date' name='var_start_date' value='$currentTask->start_date'> </td>";
-                    echo "<td> <input type='time' name='var_start_time' value='$currentTask->start_time'> </td>";
+                    echo " start date: <input type='date' name='var_start_date' value='$currentTask->start_date'> ";
+                    echo " start time: <input type='time' name='var_start_time' value='$currentTask->start_time'> ";
                 }
                 if($currentTask->type === "normal") {
-                    echo "<td> <input type='date' name='var_finish_date' value='$currentTask->finish_date'> </td>";
-                    echo "<td> <input type='time' name='var_finish_time' value='$currentTask->finish_time'> </td>";
+                    echo " finish date: <input type='date' name='var_finish_date' value='$currentTask->finish_date'> ";
+                    echo " finish time: <input type='time' name='var_finish_time' value='$currentTask->finish_time'> ";
                 }
                 if($currentTask->type === "repeat") {
-                    echo "<td> <input type='datetime-local' name='var_repeat_interval' value='$currentTask->repeat_interval'> </td> </tr>";
+                    echo " repeat interval: <input type='datetime-local' name='var_repeat_interval' value='$currentTask->repeat_interval'> ";
                 }
+                echo "</td> </tr>";
             } else {
                 echo "<tr onclick='RowClick(\"selectedTaskId\", $rowTask->id);' $style> <td>$rowTask->id</td>";
                 echo "<td> $rowTask->user_id </td>";
@@ -176,20 +179,23 @@ function tasks_table($conn,$selectedUserId,$selectedTaskId,Task $task)
                 echo "<td> $rowTask->percent_completed </td>";
                 echo "<td> $rowTask->is_private </td>";
                 echo "<td> $rowTask->type </td>";
+                
+                echo "<td>";
                 if($rowTask->type === "asap") {
-                    echo "<td> $rowTask->duration </td>";
+                    echo " duration: $rowTask->duration ";
                 }
                 if($rowTask->type === "normal" || $rowTask->type === "repeat") {
-                    echo "<td> $rowTask->start_date </td>";
-                    echo "<td> $rowTask->start_time </td>";
+                    echo " start date: $rowTask->start_date ";
+                    echo " start time: $rowTask->start_time ";
                 }
                 if($rowTask->type === "normal") {
-                    echo "<td> $rowTask->finish_date </td>";
-                    echo "<td> $rowTask->finish_time </td>";
+                    echo " finish date: $rowTask->finish_date ";
+                    echo " finish time: $rowTask->finish_time ";
                 }
                 if($rowTask->type === "repeat") {
-                    echo "<td> $rowTask->repeat_interval </td> </tr>";
+                    echo " repeat interval: $rowTask->repeat_interval ";
                 }
+                echo "</td> </tr>";
             }
         }
     }
